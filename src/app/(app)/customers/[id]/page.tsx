@@ -15,9 +15,14 @@ export default async function CustomerDetailPage({ params }: { params: Promise<{
   const { data: customer, error } = await supabase.from('customers').select('*').eq('id', id).eq('user_id', profileId).single();
   if (error || !customer) notFound();
 
-  const { data: invoices } = await supabase.from('invoices').select('id, invoice_number, total, status, amount_paid, issue_date').or(`customer_id.eq.${id},customer_email.eq.${customer.email}`).eq('user_id', profileId).order('issue_date', { ascending: false });
+  const { data: invoices } = await supabase
+    .from('invoices')
+    .select('id, invoice_number, total, status, amount_paid, issue_date')
+    .or(`customer_id.eq.${id},customer_email.eq.${customer.email}`)
+    .eq('user_id', profileId)
+    .order('issue_date', { ascending: false });
 
-  const purchaseHistory = invoices;
+  const purchaseHistory = invoices ?? [];
   const outstanding = purchaseHistory
     .filter((inv) => inv.status !== 'paid')
     .reduce((sum, inv) => sum + (Number(inv.total) - Number(inv.amount_paid || 0)), 0);

@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useEffect, useRef, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useState } from 'react';
 import { useUser } from '@clerk/nextjs';
 import type { Profile } from '@/types';
 
@@ -18,7 +18,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [profileLoading, setProfileLoading] = useState(true);
 
-  async function fetchProfile() {
+  const fetchProfile = useCallback(async () => {
     if (!clerkUser?.id) {
       setProfile(null);
       setProfileLoading(false);
@@ -37,7 +37,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     } finally {
       setProfileLoading(false);
     }
-  }
+  }, [clerkUser?.id]);
 
   async function refreshProfile() {
     setProfileLoading(true);
@@ -46,13 +46,8 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (!isLoaded) return;
-    if (!clerkUser?.id) {
-      setProfile(null);
-      setProfileLoading(false);
-      return;
-    }
     fetchProfile();
-  }, [isLoaded, clerkUser?.id]);
+  }, [fetchProfile, isLoaded]);
 
   const loading = !isLoaded || profileLoading;
   const user = clerkUser
