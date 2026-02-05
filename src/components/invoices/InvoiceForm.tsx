@@ -40,6 +40,14 @@ export function InvoiceForm({ profile, customers = [] }: { profile: Profile | nu
   const [notes, setNotes] = useState('');
   const [loading, setLoading] = useState(false);
 
+  const selectCustomer = useCallback((customer: Customer) => {
+    setCustomerId(customer.id);
+    setCustomerName(customer.name ?? '');
+    setCustomerEmail(customer.email ?? '');
+    setCustomerPhone(customer.phone ?? '');
+    setCustomerAddress(customer.address ?? '');
+  }, []);
+
   const updateItem = useCallback((id: string, updates: Partial<typeof items[0]>) => {
     setItems((prev) =>
       prev.map((i) => {
