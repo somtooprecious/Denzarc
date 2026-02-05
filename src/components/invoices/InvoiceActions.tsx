@@ -8,6 +8,7 @@ interface InvoiceActionsProps {
     id: string;
     invoice_number: string;
     type: string;
+    status?: string;
     total: number;
     customer_name: string | null;
     customer_email: string | null;
