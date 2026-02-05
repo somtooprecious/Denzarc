@@ -15,7 +15,13 @@ export async function POST(req: NextRequest) {
   if (!to || !subject) return NextResponse.json({ error: 'Missing to or subject' }, { status: 400 });
   try {
     const resend = new Resend(RESEND_KEY);
-    const { error } = await resend.emails.send({ from: EMAIL_FROM, to, subject, html: html ?? undefined });
+    const htmlContent = html ?? '<p></p>';
+    const { error } = await resend.emails.send({
+      from: EMAIL_FROM,
+      to,
+      subject,
+      html: htmlContent,
+    });
     if (error) return NextResponse.json({ error: error.message }, { status: 502 });
     return NextResponse.json({ ok: true });
   } catch (e) {
