@@ -4,7 +4,7 @@ import { getSupabaseProfileId } from '@/lib/auth';
 import { canRemoveBranding } from '@/lib/plan';
 import { InvoicePDF } from '@/components/invoices/InvoicePDF';
 import React from 'react';
-import { renderToBuffer } from '@react-pdf/renderer';
+import { Document, renderToBuffer } from '@react-pdf/renderer';
 
 export async function GET(
   _req: NextRequest,
@@ -40,11 +40,15 @@ export async function GET(
   const showBranding = !canRemoveBranding(plan);
 
   try {
-    const el = React.createElement(InvoicePDF, {
-      invoice: invoice as Parameters<typeof InvoicePDF>[0]['invoice'],
-      showBranding,
-    });
-    const buffer = await renderToBuffer(el);
+    const doc = (
+      <Document>
+        <InvoicePDF
+          invoice={invoice as Parameters<typeof InvoicePDF>[0]['invoice']}
+          showBranding={showBranding}
+        />
+      </Document>
+    );
+    const buffer = await renderToBuffer(doc);
     return new NextResponse(buffer, {
       headers: {
         'Content-Type': 'application/pdf',
