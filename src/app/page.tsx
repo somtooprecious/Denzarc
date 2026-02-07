@@ -24,11 +24,11 @@ export default function HomePage() {
           <div className="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
             <Link href="/" className="flex items-center gap-2">
               <Image
-                src="/logo.svg"
+                src="/logo.png"
                 alt="Denzarc logo"
                 width={32}
                 height={32}
-                className="h-8 w-8"
+                className="h-8 w-8 object-contain"
                 priority
               />
               <span className="text-xl font-bold text-primary-600">Denzarc</span>
@@ -85,11 +85,11 @@ export default function HomePage() {
         <div className="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
           <Link href="/" className="flex items-center gap-2">
             <Image
-              src="/logo.svg"
+              src="/logo.png"
               alt="Denzarc logo"
               width={32}
               height={32}
-              className="h-8 w-8"
+              className="h-8 w-8 object-contain"
               priority
             />
             <span className="text-xl font-bold text-primary-600">Denzarc</span>
