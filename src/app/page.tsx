@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { SignOutButton } from '@clerk/nextjs';
 import { useSession } from '@/components/providers/SessionProvider';
@@ -21,8 +22,16 @@ export default function HomePage() {
       <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
         <header className="border-b border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800">
           <div className="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
-            <Link href="/dashboard" className="text-xl font-bold text-primary-600">
-              Denzarc
+            <Link href="/" className="flex items-center gap-2">
+              <Image
+                src="/logo.svg"
+                alt="Denzarc logo"
+                width={32}
+                height={32}
+                className="h-8 w-8"
+                priority
+              />
+              <span className="text-xl font-bold text-primary-600">Denzarc</span>
             </Link>
             <nav className="flex gap-4">
               <Link
@@ -74,7 +83,17 @@ export default function HomePage() {
     <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
       <header className="border-b border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800">
         <div className="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
-          <span className="text-xl font-bold text-primary-600">Denzarc</span>
+          <Link href="/" className="flex items-center gap-2">
+            <Image
+              src="/logo.svg"
+              alt="Denzarc logo"
+              width={32}
+              height={32}
+              className="h-8 w-8"
+              priority
+            />
+            <span className="text-xl font-bold text-primary-600">Denzarc</span>
+          </Link>
           <nav className="flex gap-4">
             <Link
               href="/sign-in"
