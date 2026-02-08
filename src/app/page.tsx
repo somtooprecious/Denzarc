@@ -24,7 +24,7 @@ export default function HomePage() {
           <div className="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
             <Link href="/" className="flex items-center gap-2">
               <Image
-                src="/logo.png"
+                src="/denzarc%20logo.png"
                 alt="Denzarc logo"
                 width={32}
                 height={32}
@@ -85,7 +85,7 @@ export default function HomePage() {
         <div className="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
           <Link href="/" className="flex items-center gap-2">
             <Image
-              src="/logo.png"
+              src="/denzarc%20logo.png"
               alt="Denzarc logo"
               width={32}
               height={32}

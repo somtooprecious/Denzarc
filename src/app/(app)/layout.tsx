@@ -15,7 +15,7 @@ export default function AppLayout({
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <Link href="/" className="flex items-center gap-2">
               <Image
-                src="/logo.png"
+                src="/denzarc%20logo.png"
                 alt="Denzarc logo"
                 width={32}
                 height={32}
