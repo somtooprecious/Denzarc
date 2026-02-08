@@ -23,7 +23,7 @@ function toCsv(rows: Record<string, string | number | null | undefined>[]) {
 }
 
 export async function GET(req: Request) {
-  const { userId } = auth();
+  const { userId } = await auth();
   if (!userId || !isAdminUser(userId)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
