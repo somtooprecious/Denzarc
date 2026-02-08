@@ -20,7 +20,7 @@ function toDateInput(value: string | undefined) {
 }
 
 export default async function AdminPage({ searchParams }: { searchParams: SearchParams }) {
-  const { userId } = auth();
+  const { userId } = await auth();
   if (!userId) redirect('/sign-in');
   if (!isAdminUser(userId)) redirect('/');
 
