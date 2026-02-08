@@ -61,8 +61,8 @@ export default async function AdminPage({ searchParams }: { searchParams: Search
     { data: users },
     { data: payments, count: paymentsCount },
     { data: invoices, count: invoicesCount },
-    { data: sales },
-    { data: expenses },
+    { count: salesCount },
+    { count: expensesCount },
     { count: customersCount },
     { count: productsCount },
     { count: stockMovementsCount },
@@ -109,7 +109,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Search
         <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-4">
           <p className="text-sm text-slate-500 dark:text-slate-400">Sales / Expenses</p>
           <p className="text-2xl font-semibold text-slate-900 dark:text-white">
-            {sales?.count ?? 0} / {expenses?.count ?? 0}
+            {salesCount ?? 0} / {expensesCount ?? 0}
           </p>
         </div>
         <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-4">
