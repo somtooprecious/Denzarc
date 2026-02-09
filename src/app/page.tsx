@@ -1,13 +1,26 @@
 'use client';
 
+import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { motion } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
 import { SignOutButton } from '@clerk/nextjs';
 import { useSession } from '@/components/providers/SessionProvider';
 
 export default function HomePage() {
   const { user, profile, loading } = useSession();
+  const heroPhrases = useMemo(
+    () => ['Small Business Tools', 'Run Your Business With Ease', 'Know Your Profit, Every Day'],
+    []
+  );
+  const [heroIndex, setHeroIndex] = useState(0);
+
+  useEffect(() => {
+    const id = setInterval(() => {
+      setHeroIndex((prev) => (prev + 1) % heroPhrases.length);
+    }, 3500);
+    return () => clearInterval(id);
+  }, [heroPhrases.length]);
 
   if (loading) {
     return (
@@ -119,7 +132,20 @@ export default function HomePage() {
           className="text-center"
         >
           <h1 className="text-4xl sm:text-5xl font-bold text-slate-900 dark:text-white mb-4">
-            Small Business Tools
+            <span className="inline-flex min-h-[3.5rem] sm:min-h-[4rem]">
+              <AnimatePresence mode="wait">
+                <motion.span
+                  key={heroPhrases[heroIndex]}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.45, ease: 'easeOut' }}
+                  className="inline-block"
+                >
+                  {heroPhrases[heroIndex]}
+                </motion.span>
+              </AnimatePresence>
+            </span>
           </h1>
           <p className="text-xl text-slate-600 dark:text-slate-400 mb-8 max-w-2xl mx-auto">
             Create invoices & receipts, track sales & expenses, manage customers & inventory.
