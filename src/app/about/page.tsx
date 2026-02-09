@@ -14,8 +14,8 @@ export default function AboutPage() {
           </div>
           <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-4">
             <Image
-              src="/about-person-analytics.png"
-              alt="Business owner using analytics dashboard"
+              src="/about-invoice-dashboard.png"
+              alt="Invoice and profit dashboard preview"
               width={1000}
               height={700}
               className="w-full h-auto"
@@ -46,25 +46,14 @@ export default function AboutPage() {
           </ul>
         </section>
 
-        <section className="grid gap-8 lg:grid-cols-2 lg:items-center">
-          <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-4">
-            <Image
-              src="/about-invoice-dashboard.png"
-              alt="Invoice and profit dashboard preview"
-              width={1000}
-              height={700}
-              className="w-full h-auto"
-            />
-          </div>
-          <div>
-            <h2 className="text-2xl font-semibold text-slate-900 dark:text-white mb-4">
-              Clear dashboards and clean invoices
-            </h2>
-            <p className="text-slate-600 dark:text-slate-400">
-              Get a professional invoice experience and a clear view of revenue, expenses, and profit at a glance.
-              Denzarc keeps your business records tidy and easy to share with customers.
-            </p>
-          </div>
+        <section className="space-y-4">
+          <h2 className="text-2xl font-semibold text-slate-900 dark:text-white">
+            Clear dashboards and clean invoices
+          </h2>
+          <p className="text-slate-600 dark:text-slate-400">
+            Get a professional invoice experience and a clear view of revenue, expenses, and profit at a glance.
+            Denzarc keeps your business records tidy and easy to share with customers.
+          </p>
         </section>
 
         <section className="space-y-4">
