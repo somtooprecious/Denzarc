@@ -53,11 +53,11 @@ export default function HomePage() {
             <button
               type="button"
               onClick={() => setNavOpen((open) => !open)}
-              className="sm:hidden px-3 py-2 rounded border border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-300"
+              className="sm:hidden inline-flex items-center justify-center h-10 w-10 rounded-lg border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200"
               aria-expanded={navOpen}
               aria-label="Toggle navigation"
             >
-              Menu
+              <span className="text-lg">{navOpen ? '×' : '☰'}</span>
             </button>
             <nav className="hidden sm:flex gap-4">
               <Link
@@ -99,30 +99,53 @@ export default function HomePage() {
               </SignOutButton>
             </nav>
             </div>
-            <nav className={`${navOpen ? 'flex' : 'hidden'} sm:hidden flex-col gap-3 pt-4`}>
-              <Link href="/dashboard" className="text-slate-600 dark:text-slate-300 hover:text-primary-600">
-                Dashboard
-              </Link>
-              <Link href="/invoices" className="text-slate-600 dark:text-slate-300 hover:text-primary-600">
-                Invoices
-              </Link>
-              <Link href="/about" className="text-slate-600 dark:text-slate-300 hover:text-primary-600">
-                About
-              </Link>
-              <Link href="/contact" className="text-slate-600 dark:text-slate-300 hover:text-primary-600">
-                Contact
-              </Link>
-              {isAdmin && (
-                <Link href="/admin" className="text-slate-600 dark:text-slate-300 hover:text-primary-600">
-                  Admin
-                </Link>
+            <AnimatePresence>
+              {navOpen && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="sm:hidden fixed inset-0 z-40 bg-slate-900/40 backdrop-blur-[1px]"
+                  onClick={() => setNavOpen(false)}
+                />
               )}
-              <SignOutButton>
-                <button type="button" className="text-left text-slate-600 dark:text-slate-300 hover:text-red-600">
-                  Sign out
-                </button>
-              </SignOutButton>
-            </nav>
+            </AnimatePresence>
+            <AnimatePresence>
+              {navOpen && (
+                <motion.nav
+                  initial={{ y: -12, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  exit={{ y: -12, opacity: 0 }}
+                  transition={{ duration: 0.2, ease: 'easeOut' }}
+                  className="sm:hidden absolute left-0 right-0 mt-3 z-50 mx-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-xl p-4"
+                >
+                  <div className="flex flex-col gap-3">
+                    <Link href="/dashboard" onClick={() => setNavOpen(false)} className="text-slate-700 dark:text-slate-200">
+                      Dashboard
+                    </Link>
+                    <Link href="/invoices" onClick={() => setNavOpen(false)} className="text-slate-700 dark:text-slate-200">
+                      Invoices
+                    </Link>
+                    <Link href="/about" onClick={() => setNavOpen(false)} className="text-slate-700 dark:text-slate-200">
+                      About
+                    </Link>
+                    <Link href="/contact" onClick={() => setNavOpen(false)} className="text-slate-700 dark:text-slate-200">
+                      Contact
+                    </Link>
+                    {isAdmin && (
+                      <Link href="/admin" onClick={() => setNavOpen(false)} className="text-slate-700 dark:text-slate-200">
+                        Admin
+                      </Link>
+                    )}
+                    <SignOutButton>
+                      <button type="button" onClick={() => setNavOpen(false)} className="text-left text-red-600">
+                        Sign out
+                      </button>
+                    </SignOutButton>
+                  </div>
+                </motion.nav>
+              )}
+            </AnimatePresence>
           </div>
         </header>
         <main className="max-w-6xl mx-auto px-4 py-12">
@@ -169,11 +192,11 @@ export default function HomePage() {
           <button
             type="button"
             onClick={() => setNavOpen((open) => !open)}
-            className="sm:hidden px-3 py-2 rounded border border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-300"
+            className="sm:hidden inline-flex items-center justify-center h-10 w-10 rounded-lg border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200"
             aria-expanded={navOpen}
             aria-label="Toggle navigation"
           >
-            Menu
+            <span className="text-lg">{navOpen ? '×' : '☰'}</span>
           </button>
           <nav className="hidden sm:flex gap-4">
             <Link
@@ -202,20 +225,47 @@ export default function HomePage() {
             </Link>
           </nav>
           </div>
-          <nav className={`${navOpen ? 'flex' : 'hidden'} sm:hidden flex-col gap-3 pt-4`}>
-            <Link href="/about" className="text-slate-600 dark:text-slate-300 hover:text-primary-600">
-              About
-            </Link>
-            <Link href="/contact" className="text-slate-600 dark:text-slate-300 hover:text-primary-600">
-              Contact
-            </Link>
-            <Link href="/sign-in" className="text-slate-600 dark:text-slate-300 hover:text-primary-600">
-              Sign in
-            </Link>
-            <Link href="/sign-up" className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition">
-              Sign up
-            </Link>
-          </nav>
+          <AnimatePresence>
+            {navOpen && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="sm:hidden fixed inset-0 z-40 bg-slate-900/40 backdrop-blur-[1px]"
+                onClick={() => setNavOpen(false)}
+              />
+            )}
+          </AnimatePresence>
+          <AnimatePresence>
+            {navOpen && (
+              <motion.nav
+                initial={{ y: -12, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                exit={{ y: -12, opacity: 0 }}
+                transition={{ duration: 0.2, ease: 'easeOut' }}
+                className="sm:hidden absolute left-0 right-0 mt-3 z-50 mx-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-xl p-4"
+              >
+                <div className="flex flex-col gap-3">
+                  <Link href="/about" onClick={() => setNavOpen(false)} className="text-slate-700 dark:text-slate-200">
+                    About
+                  </Link>
+                  <Link href="/contact" onClick={() => setNavOpen(false)} className="text-slate-700 dark:text-slate-200">
+                    Contact
+                  </Link>
+                  <Link href="/sign-in" onClick={() => setNavOpen(false)} className="text-slate-700 dark:text-slate-200">
+                    Sign in
+                  </Link>
+                  <Link
+                    href="/sign-up"
+                    onClick={() => setNavOpen(false)}
+                    className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition text-center"
+                  >
+                    Sign up
+                  </Link>
+                </div>
+              </motion.nav>
+            )}
+          </AnimatePresence>
         </div>
       </header>
 
