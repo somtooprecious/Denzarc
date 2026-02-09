@@ -8,6 +8,7 @@ export default function SignInPage() {
           elements: {
             rootBox: 'mx-auto',
             card: 'shadow-lg border border-slate-200 dark:border-slate-700',
+            footer: 'hidden',
           },
         }}
         afterSignInUrl="/dashboard"
