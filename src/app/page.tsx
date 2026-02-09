@@ -168,7 +168,7 @@ export default function HomePage() {
               href="/pricing"
               className="px-6 py-3 border border-primary-500 text-primary-600 dark:text-primary-400 rounded-lg hover:bg-primary-50 dark:hover:bg-primary-900/20 transition"
             >
-              View Pricing (Paystack)
+              View Pricing
             </Link>
           </div>
         </motion.div>
