@@ -14,6 +14,9 @@ export default function HomePage() {
     []
   );
   const [heroIndex, setHeroIndex] = useState(0);
+  const [navOpen, setNavOpen] = useState(false);
+  const adminId = process.env.NEXT_PUBLIC_ADMIN_CLERK_USER_ID;
+  const isAdmin = Boolean(user?.id && adminId && user.id === adminId);
 
   useEffect(() => {
     const id = setInterval(() => {
@@ -34,7 +37,8 @@ export default function HomePage() {
     return (
       <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
         <header className="border-b border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800">
-          <div className="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
+          <div className="max-w-6xl mx-auto px-4 py-4">
+            <div className="flex justify-between items-center">
             <Link href="/" className="flex items-center gap-2">
               <Image
                 src="/denzarc%20logo.png"
@@ -46,7 +50,16 @@ export default function HomePage() {
               />
               <span className="text-xl font-bold text-primary-600">Denzarc</span>
             </Link>
-            <nav className="flex gap-4">
+            <button
+              type="button"
+              onClick={() => setNavOpen((open) => !open)}
+              className="sm:hidden px-3 py-2 rounded border border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-300"
+              aria-expanded={navOpen}
+              aria-label="Toggle navigation"
+            >
+              Menu
+            </button>
+            <nav className="hidden sm:flex gap-4">
               <Link
                 href="/dashboard"
                 className="text-slate-600 dark:text-slate-300 hover:text-primary-600"
@@ -59,8 +72,53 @@ export default function HomePage() {
               >
                 Invoices
               </Link>
+              <Link
+                href="/about"
+                className="text-slate-600 dark:text-slate-300 hover:text-primary-600"
+              >
+                About
+              </Link>
+              <Link
+                href="/contact"
+                className="text-slate-600 dark:text-slate-300 hover:text-primary-600"
+              >
+                Contact
+              </Link>
+              {isAdmin && (
+                <Link
+                  href="/admin"
+                  className="text-slate-600 dark:text-slate-300 hover:text-primary-600"
+                >
+                  Admin
+                </Link>
+              )}
               <SignOutButton>
                 <button type="button" className="text-slate-600 dark:text-slate-300 hover:text-red-600">
+                  Sign out
+                </button>
+              </SignOutButton>
+            </nav>
+            </div>
+            <nav className={`${navOpen ? 'flex' : 'hidden'} sm:hidden flex-col gap-3 pt-4`}>
+              <Link href="/dashboard" className="text-slate-600 dark:text-slate-300 hover:text-primary-600">
+                Dashboard
+              </Link>
+              <Link href="/invoices" className="text-slate-600 dark:text-slate-300 hover:text-primary-600">
+                Invoices
+              </Link>
+              <Link href="/about" className="text-slate-600 dark:text-slate-300 hover:text-primary-600">
+                About
+              </Link>
+              <Link href="/contact" className="text-slate-600 dark:text-slate-300 hover:text-primary-600">
+                Contact
+              </Link>
+              {isAdmin && (
+                <Link href="/admin" className="text-slate-600 dark:text-slate-300 hover:text-primary-600">
+                  Admin
+                </Link>
+              )}
+              <SignOutButton>
+                <button type="button" className="text-left text-slate-600 dark:text-slate-300 hover:text-red-600">
                   Sign out
                 </button>
               </SignOutButton>
@@ -95,7 +153,8 @@ export default function HomePage() {
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
       <header className="border-b border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800">
-        <div className="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
+        <div className="max-w-6xl mx-auto px-4 py-4">
+          <div className="flex justify-between items-center">
           <Link href="/" className="flex items-center gap-2">
             <Image
               src="/denzarc%20logo.png"
@@ -107,7 +166,28 @@ export default function HomePage() {
             />
             <span className="text-xl font-bold text-primary-600">Denzarc</span>
           </Link>
-          <nav className="flex gap-4">
+          <button
+            type="button"
+            onClick={() => setNavOpen((open) => !open)}
+            className="sm:hidden px-3 py-2 rounded border border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-300"
+            aria-expanded={navOpen}
+            aria-label="Toggle navigation"
+          >
+            Menu
+          </button>
+          <nav className="hidden sm:flex gap-4">
+            <Link
+              href="/about"
+              className="text-slate-600 dark:text-slate-300 hover:text-primary-600"
+            >
+              About
+            </Link>
+            <Link
+              href="/contact"
+              className="text-slate-600 dark:text-slate-300 hover:text-primary-600"
+            >
+              Contact
+            </Link>
             <Link
               href="/sign-in"
               className="text-slate-600 dark:text-slate-300 hover:text-primary-600"
@@ -118,6 +198,21 @@ export default function HomePage() {
               href="/sign-up"
               className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition"
             >
+              Sign up
+            </Link>
+          </nav>
+          </div>
+          <nav className={`${navOpen ? 'flex' : 'hidden'} sm:hidden flex-col gap-3 pt-4`}>
+            <Link href="/about" className="text-slate-600 dark:text-slate-300 hover:text-primary-600">
+              About
+            </Link>
+            <Link href="/contact" className="text-slate-600 dark:text-slate-300 hover:text-primary-600">
+              Contact
+            </Link>
+            <Link href="/sign-in" className="text-slate-600 dark:text-slate-300 hover:text-primary-600">
+              Sign in
+            </Link>
+            <Link href="/sign-up" className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition">
               Sign up
             </Link>
           </nav>
