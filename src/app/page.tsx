@@ -373,6 +373,59 @@ export default function HomePage() {
             </Link>
           ))}
         </motion.section>
+
+        <section className="mt-20">
+          <div className="text-center mb-10">
+            <h2 className="text-3xl font-bold text-slate-900 dark:text-white">Frequently Asked Questions</h2>
+            <p className="text-slate-600 dark:text-slate-400 mt-2">
+              Quick answers about invoices, tracking, and how Denzarc works.
+            </p>
+          </div>
+          <div className="grid gap-6 lg:grid-cols-2">
+            {[
+              {
+                q: 'What is the difference between an invoice and a receipt?',
+                a: 'An invoice requests payment for goods or services, while a receipt confirms payment was received.',
+              },
+              {
+                q: 'Can I customize my invoice with my business details?',
+                a: 'Yes. You can add your business name, address, logo, customer details, and line items before sending.',
+              },
+              {
+                q: 'Can I download and share invoices as PDF?',
+                a: 'Yes. Generate a PDF and share it by email or WhatsApp directly from your dashboard.',
+              },
+              {
+                q: 'How do I track sales and expenses?',
+                a: 'Use the Sales and Expense tools to record entries and view automatic summaries.',
+              },
+              {
+                q: 'What features are included in the Pro plan?',
+                a: 'Pro unlocks unlimited invoices, advanced reports, customer and inventory tools, and automation features.',
+              },
+              {
+                q: 'Is my data secure?',
+                a: 'We use secure infrastructure and best practices to protect your account and business data.',
+              },
+              {
+                q: 'Can I manage customers and inventory?',
+                a: 'Yes. Create customer profiles, track purchase history, and manage product stock levels.',
+              },
+              {
+                q: 'How can I get support?',
+                a: 'Use the Contact page or email us anytime and our team will respond as quickly as possible.',
+              },
+            ].map((item) => (
+              <div
+                key={item.q}
+                className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-6"
+              >
+                <h3 className="text-base font-semibold text-slate-900 dark:text-white">{item.q}</h3>
+                <p className="text-sm text-slate-600 dark:text-slate-400 mt-2">{item.a}</p>
+              </div>
+            ))}
+          </div>
+        </section>
       </main>
     </div>
   );
