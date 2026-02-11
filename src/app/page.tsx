@@ -345,11 +345,17 @@ export default function HomePage() {
           </div>
         </motion.div>
 
+        <div className="mt-20 text-center">
+          <h2 className="text-3xl font-bold text-slate-900 dark:text-white">Features</h2>
+          <p className="text-slate-600 dark:text-slate-400 mt-2">
+            Everything you need to run your business in one place.
+          </p>
+        </div>
         <motion.section
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.3, duration: 0.5 }}
-          className="mt-20 grid sm:grid-cols-2 lg:grid-cols-3 gap-6"
+          className="mt-10 grid sm:grid-cols-2 lg:grid-cols-3 gap-6"
         >
           {[
             { title: '1. Invoice & Receipt Generator', desc: 'Create invoices & receipts, auto-generate numbers, business name & logo, customer details, line items (qty, price, total), tax & discount, payment status (paid/unpaid/partial), PDF download, share via WhatsApp & email.', href: '/sign-up', pro: false },
