@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { AnimatePresence, motion } from 'framer-motion';
 import { SignOutButton } from '@clerk/nextjs';
 import { useSession } from '@/components/providers/SessionProvider';
+import { ThemeToggle } from '@/components/ThemeToggle';
 
 export default function HomePage() {
   const { user, profile, loading } = useSession();
@@ -92,6 +93,7 @@ export default function HomePage() {
                   Admin
                 </Link>
               )}
+              <ThemeToggle className="text-slate-600 dark:text-slate-300 hover:text-primary-600 transition" />
               <SignOutButton>
                 <button type="button" className="text-slate-600 dark:text-slate-300 hover:text-red-600">
                   Sign out
@@ -137,6 +139,7 @@ export default function HomePage() {
                         Admin
                       </Link>
                     )}
+                    <ThemeToggle className="text-left text-slate-700 dark:text-slate-200" />
                     <SignOutButton>
                       <button type="button" onClick={() => setNavOpen(false)} className="text-left text-red-600">
                         Sign out
@@ -168,6 +171,30 @@ export default function HomePage() {
               Go to Dashboard
             </Link>
           </motion.div>
+        <motion.section
+          initial={{ opacity: 0, y: 14 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.35, delay: 0.1 }}
+          className="mt-10"
+        >
+          <div className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-6 sm:p-8">
+            <div className="text-left">
+                <h2 className="text-2xl font-semibold text-slate-900 dark:text-white mb-3">
+                  How to create an invoice
+                </h2>
+                <p className="text-slate-600 dark:text-slate-400 mb-5">
+                  Follow these quick steps inside Denzarc to create, download, and send a professional invoice.
+                </p>
+                <ol className="space-y-3 text-slate-700 dark:text-slate-300 list-decimal pl-5">
+                  <li>Go to the Invoices page and click Create Invoice.</li>
+                  <li>Add your business details and customer information.</li>
+                  <li>Add items (qty, price) and apply tax or discount if needed.</li>
+                  <li>Review the total and set the payment status.</li>
+                  <li>Save, then download the PDF or share by email or WhatsApp.</li>
+                </ol>
+            </div>
+          </div>
+        </motion.section>
         </main>
       </div>
     );
