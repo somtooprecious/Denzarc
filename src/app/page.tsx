@@ -343,6 +343,15 @@ export default function HomePage() {
               View Pricing
             </Link>
           </div>
+          <div className="mt-10 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-6 py-8 text-left sm:px-10">
+            <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white">
+              Easy business tools for smarter growth.
+            </h2>
+            <p className="text-slate-600 dark:text-slate-400 mt-3">
+              Create invoices and receipts, track sales and expenses, manage customers and inventory, and keep
+              your business finances organized in one simple workflow built for small business owners.
+            </p>
+          </div>
         </motion.div>
 
         <div className="mt-20 text-center">
