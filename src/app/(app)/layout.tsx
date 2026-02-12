@@ -26,7 +26,14 @@ export default function AppLayout({
             </Link>
             <DashboardNav />
             <div className="flex items-center gap-4">
-              <UserButton afterSignOutUrl="/" />
+              <UserButton
+                afterSignOutUrl="/"
+                appearance={{
+                  elements: {
+                    userButtonPopoverFooter: 'hidden',
+                  },
+                }}
+              />
             </div>
           </div>
         </div>
