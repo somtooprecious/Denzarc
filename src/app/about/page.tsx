@@ -1,4 +1,16 @@
+import type { Metadata } from 'next';
 import Image from 'next/image';
+
+export const metadata: Metadata = {
+  title: 'About Us',
+  description:
+    'Denzarc is a modern small business tools platform for entrepreneurs, freelancers, and sellers: invoices, sales, expenses, customers, and inventory in one place.',
+  openGraph: {
+    title: 'About Denzarc | Small Business Tools',
+    description:
+      'Denzarc helps small businesses manage invoices, sales, expenses, customers, and inventory in one place.',
+  },
+};
 
 export default function AboutPage() {
   return (

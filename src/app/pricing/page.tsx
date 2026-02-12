@@ -1,6 +1,18 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { getSupabaseProfile } from '@/lib/auth';
 import { PricingCards } from '@/components/pricing/PricingCards';
+
+export const metadata: Metadata = {
+  title: 'Pricing',
+  description:
+    'Denzarc pricing: start free with invoices, sales & expense tracking. Upgrade to Pro for unlimited invoices, CRM, inventory, AI insights, and more.',
+  openGraph: {
+    title: 'Pricing | Denzarc Small Business Tools',
+    description:
+      'Free and Pro plans. Upgrade for unlimited invoices, customer & inventory management, AI insights, and notifications.',
+  },
+};
 
 export default async function PricingPage() {
   const profile = await getSupabaseProfile();

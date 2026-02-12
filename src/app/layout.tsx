@@ -4,10 +4,61 @@ import { Toaster } from 'react-hot-toast';
 import { Providers } from '@/components/providers/Providers';
 import './globals.css';
 
+const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://denzarc.com';
+
 export const metadata: Metadata = {
-  title: 'Small Business Tools | Invoices, Sales & Profit Tracking',
+  metadataBase: new URL(baseUrl),
+  title: {
+    default: 'Denzarc | Small Business Tools – Invoices, Sales & Profit Tracking',
+    template: '%s | Denzarc',
+  },
   description:
-    'Create invoices & receipts, track sales & expenses, manage customers & inventory. Free and Pro plans.',
+    'Create invoices & receipts, track sales & expenses, manage customers & inventory. Free and Pro plans. Built for small business owners.',
+  keywords: [
+    'invoice generator',
+    'small business tools',
+    'sales tracker',
+    'expense tracker',
+    'profit tracking',
+    'customer management',
+    'inventory management',
+    'receipt generator',
+    'business dashboard',
+  ],
+  authors: [{ name: 'Denzarc', url: baseUrl }],
+  creator: 'Denzarc',
+  openGraph: {
+    type: 'website',
+    locale: 'en_US',
+    url: baseUrl,
+    siteName: 'Denzarc',
+    title: 'Denzarc | Small Business Tools – Invoices, Sales & Profit Tracking',
+    description:
+      'Create invoices & receipts, track sales & expenses, manage customers & inventory. Free and Pro plans.',
+    images: [
+      {
+        url: '/denzarc%20logo.png',
+        width: 512,
+        height: 512,
+        alt: 'Denzarc – Small Business Tools',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Denzarc | Small Business Tools – Invoices, Sales & Profit Tracking',
+    description:
+      'Create invoices & receipts, track sales & expenses, manage customers & inventory. Free and Pro plans.',
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: { index: true, follow: true },
+  },
+  alternates: { canonical: baseUrl },
+  verification: {
+    // Add when you have them: google: 'google-site-verification-code', yandex: 'yandex-verification-code',
+  },
 };
 
 export default function RootLayout({
@@ -15,10 +66,36 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@graph': [
+      {
+        '@type': 'Organization',
+        name: 'Denzarc',
+        url: baseUrl,
+        logo: `${baseUrl}/denzarc%20logo.png`,
+        description:
+          'Small business tools: invoices, sales & expense tracking, customer and inventory management, AI insights.',
+      },
+      {
+        '@type': 'WebSite',
+        name: 'Denzarc',
+        url: baseUrl,
+        publisher: { '@id': `${baseUrl}#organization` },
+        description:
+          'Create invoices & receipts, track sales & expenses, manage customers & inventory. Free and Pro plans.',
+      },
+    ],
+  };
+
   return (
     <ClerkProvider>
       <html lang="en" suppressHydrationWarning>
         <body className="antialiased min-h-screen">
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+          />
           <Providers>
             {children}
             <footer className="border-t border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900">

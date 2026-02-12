@@ -1,3 +1,16 @@
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Contact Us',
+  description:
+    'Get in touch with Denzarc for support, billing, and technical questions. We respond within 24–48 hours.',
+  openGraph: {
+    title: 'Contact Denzarc | Support & Inquiries',
+    description:
+      'Contact Denzarc for customer support, account and billing questions, and technical assistance.',
+  },
+};
+
 export default function ContactPage() {
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
