@@ -375,7 +375,7 @@ export default function HomePage() {
             { title: '6. Inventory Management', desc: 'Products, stock in/out, low stock alerts (email & WhatsApp).', href: '/sign-up', pro: true },
             { title: '7. Notifications', desc: 'One email (Resend): Invoice sent, payment reminder, low stock alert. One WhatsApp/SMS (Termii): Invoice link, payment reminder, subscription expiry reminder.', href: '/sign-up', pro: true },
             { title: '8. AI Business Intelligence', desc: 'Analyze sales & expenses, profit insights, predict next month sales, highlight best & worst products. E.g. "Expenses +18%", "You sell more on Fridays", "Product A highest margin".', href: '/sign-up', pro: true },
-            { title: '9. Subscription & Payments (Paystack)', desc: 'Upgrade to Pro: Initialize Paystack, verify payment, upgrade plan. Subscription start/end, renew/expires display.', href: '/sign-up', pro: true },
+            { title: '9. Subscription & Payments', desc: 'Upgrade to Pro: Initialize Paystack, verify payment, upgrade plan. Subscription start/end, renew/expires display.', href: '/sign-up', pro: true },
           ].map((card) => (
             <Link
               key={card.title}
