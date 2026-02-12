@@ -50,6 +50,13 @@ export const metadata: Metadata = {
     description:
       'Create invoices & receipts, track sales & expenses, manage customers & inventory. Free and Pro plans.',
   },
+  icons: {
+    icon: [
+      { url: '/denzarc%20logo.png', type: 'image/png' },
+    ],
+    shortcut: ['/denzarc%20logo.png'],
+    apple: [{ url: '/denzarc%20logo.png' }],
+  },
   robots: {
     index: true,
     follow: true,
