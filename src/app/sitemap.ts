@@ -1,6 +1,6 @@
 import { MetadataRoute } from 'next';
 
-const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://denzarc.com';
+const baseUrl = (process.env.NEXT_PUBLIC_APP_URL || 'https://denzarc.com').replace(/\/$/, '');
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const publicPaths = [
@@ -13,7 +13,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   ];
 
   return publicPaths.map((path) => ({
-    url: `${baseUrl}${path}`,
+    url: path ? `${baseUrl}${path}` : `${baseUrl}/`,
     lastModified: new Date(),
     changeFrequency: (path === '' ? 'weekly' : 'monthly') as 'weekly' | 'monthly',
     priority: path === '' ? 1 : 0.8,

@@ -4,7 +4,7 @@ import { Toaster } from 'react-hot-toast';
 import { Providers } from '@/components/providers/Providers';
 import './globals.css';
 
-const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://denzarc.com';
+const baseUrl = (process.env.NEXT_PUBLIC_APP_URL || 'https://denzarc.com').replace(/\/$/, '');
 
 export const metadata: Metadata = {
   metadataBase: new URL(baseUrl),
