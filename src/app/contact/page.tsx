@@ -37,7 +37,15 @@ export default function ContactPage() {
             via email or through the support form in your dashboard.
           </p>
           <ul className="space-y-2 text-slate-600 dark:text-slate-400 list-disc pl-5">
-            <li>Support Email: somtooprecious1@gmail.com</li>
+            <li>
+              Support Email:{' '}
+              <a
+                href="mailto:somtooprecious1@gmail.com"
+                className="text-primary-600 dark:text-primary-400 hover:underline"
+              >
+                somtooprecious1@gmail.com
+              </a>
+            </li>
             <li>Standard Response Time: 24–48 business hours</li>
             <li>Priority Support (Pro Plan): 12–24 business hours</li>
             <li>Business Hours: Monday – Friday | 9:00 AM – 5:00 PM (WAT)</li>
@@ -62,7 +70,14 @@ export default function ContactPage() {
 
         <section className="space-y-4">
           <h2 className="text-2xl font-semibold text-slate-900 dark:text-white">Partnerships &amp; Business Inquiries</h2>
-          <p className="text-slate-600 dark:text-slate-400">somtooprecious1@gmail.com</p>
+          <p className="text-slate-600 dark:text-slate-400">
+            <a
+              href="mailto:somtooprecious1@gmail.com"
+              className="text-primary-600 dark:text-primary-400 hover:underline"
+            >
+              somtooprecious1@gmail.com
+            </a>
+          </p>
         </section>
 
         <section className="space-y-4">
