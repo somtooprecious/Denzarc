@@ -20,6 +20,7 @@ const allLinks = [
   { href: '/inventory', label: 'Inventory', pro: true },
   { href: '/notifications', label: 'Notifications', pro: true },
   { href: '/ai-insights', label: 'AI Insights', pro: true },
+  { href: '/support', label: 'Support', pro: false },
   { href: '/settings', label: 'Settings', pro: false },
 ];
 
