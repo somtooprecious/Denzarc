@@ -7,10 +7,6 @@ const PAYSTACK_SECRET = process.env.PAYSTACK_SECRET_KEY;
 const PRO_AMOUNT = (Number(process.env.PRO_PLAN_AMOUNT ?? 2999)) * 100;
 const PRO_CURRENCY = process.env.PRO_PLAN_CURRENCY ?? 'NGN';
 const APP_URL = (process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000').replace(/\/$/, '');
-const PAYSTACK_CHANNELS = (process.env.PAYSTACK_CHANNELS ?? 'card,bank_transfer')
-  .split(',')
-  .map((channel) => channel.trim())
-  .filter(Boolean);
 
 export async function POST(req: NextRequest) {
   if (!PAYSTACK_SECRET) return NextResponse.json({ error: 'Paystack not configured' }, { status: 503 });
@@ -37,7 +33,6 @@ export async function POST(req: NextRequest) {
       email: email || undefined,
       amount: PRO_AMOUNT,
       currency: PRO_CURRENCY,
-      channels: PAYSTACK_CHANNELS,
       reference,
       callback_url: `${APP_URL}/api/payments/verify`,
       metadata: { user_id: profileId },
