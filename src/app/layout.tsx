@@ -131,7 +131,11 @@ export default function RootLayout({
                     <div className="text-sm font-semibold text-slate-900 dark:text-white">Business</div>
                     <ul className="space-y-2 text-sm">
                       <li>Pricing</li>
-                      <li>Support</li>
+                      <li>
+                        <a href="/support" className="hover:text-primary-600 dark:hover:text-primary-400 transition">
+                          Support
+                        </a>
+                      </li>
                       <li>Security & privacy</li>
                       <li>Terms of service</li>
                     </ul>

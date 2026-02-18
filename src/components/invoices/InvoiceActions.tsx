@@ -139,7 +139,7 @@ export function InvoiceActions({ invoice }: InvoiceActionsProps) {
         onClick={handleSendEmail}
         disabled={sendingEmail || !invoice.customer_email}
         className="px-4 py-2 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 text-sm font-medium rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition disabled:opacity-50"
-        title={!invoice.customer_email ? 'Add customer email to send' : 'Send invoice via Resend (if configured)'}
+        title={!invoice.customer_email ? 'Add customer email to send' : 'Send invoice by email'}
       >
         {sendingEmail ? 'Sending…' : 'Send via Email'}
       </button>

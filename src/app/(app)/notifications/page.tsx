@@ -22,7 +22,7 @@ export default async function NotificationsPage() {
     <div className="space-y-6">
       <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Notifications</h1>
       <p className="text-slate-600 dark:text-slate-400">
-        One email service (Resend): Invoice sent, Payment reminder, Low stock alert. One WhatsApp/SMS service (Termii): Invoice link, Payment reminder, Subscription expiry reminder.
+        Email notifications: Invoice sent, payment reminder, low stock alert. One WhatsApp/SMS service (Termii): Invoice link, payment reminder, subscription expiry reminder.
       </p>
       <NotificationsPanel
         lowStockProducts={lowStock}

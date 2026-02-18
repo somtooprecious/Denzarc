@@ -29,19 +29,12 @@ export function NotificationsPanel({
     if (lowStockProducts.length === 0) { toast.success('No low stock products'); return; }
     setSendingLowStock(true);
     try {
-      const res = await fetch('/api/notifications/email', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          to: userEmail,
-          subject: 'Low stock alert - Businesstool',
-          html: `<p>Low stock products:</p><ul>${lowStockProducts.map((p) => `<li>${p.name}: ${p.quantity} left (alert at ${p.low_stock_threshold})</li>`).join('')}</ul><p><a href="${typeof window !== 'undefined' ? window.location.origin : ''}/inventory">View inventory</a></p>`,
-        }),
-      });
-      if (!res.ok) throw new Error((await res.json()).error ?? 'Failed');
-      toast.success('Low stock alert sent to your email');
+      const subject = 'Low stock alert - Businesstool';
+      const body = `Low stock products:\n${lowStockProducts.map((p) => `- ${p.name}: ${p.quantity} left (alert at ${p.low_stock_threshold})`).join('\n')}\n\nView inventory: ${typeof window !== 'undefined' ? `${window.location.origin}/inventory` : ''}`;
+      window.location.href = `mailto:${encodeURIComponent(userEmail)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+      toast.success('Your email app is opening');
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : 'Email not configured');
+      toast.error(e instanceof Error ? e.message : 'Could not open your email app');
     } finally {
       setSendingLowStock(false);
     }
@@ -68,7 +61,7 @@ export function NotificationsPanel({
     <div className="space-y-6">
       <div className="grid sm:grid-cols-2 gap-6">
         <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-6">
-          <h2 className="font-semibold text-slate-900 dark:text-white mb-2">Email (Resend) – one service for all email</h2>
+          <h2 className="font-semibold text-slate-900 dark:text-white mb-2">Email notifications</h2>
           <ul className="space-y-3 text-sm text-slate-600 dark:text-slate-400 mb-4">
             <li>• Invoice sent – From invoice detail, click &quot;Send via Email&quot;</li>
             <li>• Payment reminder – From unpaid invoice, click &quot;Payment reminder (email)&quot;</li>

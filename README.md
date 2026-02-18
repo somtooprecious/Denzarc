@@ -2,7 +2,7 @@
 
 A responsive, modern Small Business Tools SaaS with **Invoice/Receipt Generator** as the primary feature, plus sales tracking, expenses, profit dashboard, and more.
 
-**Stack:** Next.js (App Router), TypeScript, Tailwind CSS, Framer Motion, Supabase (Auth + PostgreSQL), Paystack, Resend, Termii, OpenAI, React-PDF, Recharts. Deploy on Vercel.
+**Stack:** Next.js (App Router), TypeScript, Tailwind CSS, Framer Motion, Supabase (Auth + PostgreSQL), Paystack, Termii, OpenAI, React-PDF, Recharts. Deploy on Vercel.
 
 ## Setup
 
@@ -18,7 +18,7 @@ A responsive, modern Small Business Tools SaaS with **Invoice/Receipt Generator*
 
    - `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` – Supabase project
    - `PAYSTACK_SECRET_KEY`, `NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY` (optional for payments)
-   - `RESEND_API_KEY`, `EMAIL_FROM` (optional for email)
+   - `NEXT_PUBLIC_SUPPORT_EMAIL` (support inbox used by the support page mailto)
    - `TERMII_API_KEY`, `TERMII_SENDER_ID` (optional for SMS/WhatsApp)
    - `OPENAI_API_KEY` (optional for AI insights)
    - `NEXT_PUBLIC_APP_URL` – e.g. `http://localhost:3000` or your production URL
@@ -50,7 +50,7 @@ A responsive, modern Small Business Tools SaaS with **Invoice/Receipt Generator*
 - **Inventory (Pro):** Products, stock in/out, low-stock alerts.
 - **AI insights (Pro):** OpenAI-powered analysis and predictions.
 - **Payments:** Paystack for Pro upgrades.
-- **Notifications:** Resend (email), Termii (SMS/WhatsApp) – API routes ready.
+- **Notifications:** Email + Termii (SMS/WhatsApp) – API routes ready.
 
 ## API routes
 

@@ -34,7 +34,7 @@ export default function ContactPage() {
           <h2 className="text-2xl font-semibold text-slate-900 dark:text-white">Customer Support</h2>
           <p className="text-slate-600 dark:text-slate-400">
             For general inquiries, technical assistance, or feature-related questions, please contact us
-            via email or through the support form in your dashboard.
+            via email or through the support page.
           </p>
           <ul className="space-y-2 text-slate-600 dark:text-slate-400 list-disc pl-5">
             <li>

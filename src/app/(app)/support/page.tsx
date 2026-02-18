@@ -6,34 +6,20 @@ import toast from 'react-hot-toast';
 const categories = ['General', 'Billing', 'Technical Issue', 'Feature Request', 'Account'];
 
 export default function SupportPage() {
+  const supportEmail = process.env.NEXT_PUBLIC_SUPPORT_EMAIL || 'somtooprecious1@gmail.com';
   const [category, setCategory] = useState(categories[0]);
   const [subject, setSubject] = useState('');
   const [message, setMessage] = useState('');
-  const [sending, setSending] = useState(false);
 
   const charsLeft = useMemo(() => 4000 - message.length, [message.length]);
 
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setSending(true);
-    try {
-      const response = await fetch('/api/support', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ category, subject, message }),
-      });
-      const data = (await response.json()) as { error?: string };
-      if (!response.ok) throw new Error(data.error ?? 'Failed to send request');
-      toast.success('Support request sent. We will get back to you soon.');
-      setSubject('');
-      setMessage('');
-      setCategory(categories[0]);
-    } catch (error) {
-      const messageText = error instanceof Error ? error.message : 'Unable to send support request';
-      toast.error(messageText);
-    } finally {
-      setSending(false);
-    }
+    const subjectLine = `[${category}] ${subject.trim()}`;
+    const body = `Category: ${category}\n\nMessage:\n${message.trim()}`;
+    const mailto = `mailto:${encodeURIComponent(supportEmail)}?subject=${encodeURIComponent(subjectLine)}&body=${encodeURIComponent(body)}`;
+    window.location.href = mailto;
+    toast.success('Your email app is opening. Send the message to reach support.');
   }
 
   return (
@@ -104,10 +90,9 @@ export default function SupportPage() {
 
           <button
             type="submit"
-            disabled={sending}
-            className="inline-flex items-center justify-center rounded-lg bg-primary-600 px-5 py-2.5 text-white font-medium hover:bg-primary-700 disabled:opacity-60 disabled:cursor-not-allowed transition"
+            className="inline-flex items-center justify-center rounded-lg bg-primary-600 px-5 py-2.5 text-white font-medium hover:bg-primary-700 transition"
           >
-            {sending ? 'Sending...' : 'Send Support Request'}
+            Email Support
           </button>
         </form>
       </div>
