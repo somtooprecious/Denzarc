@@ -105,6 +105,13 @@ export default function RootLayout({
           />
           <Providers>
             {children}
+            <a
+              href="/support"
+              className="fixed bottom-5 right-5 z-50 inline-flex items-center gap-2 rounded-full bg-primary-600 px-4 py-2 text-sm font-semibold text-white shadow-lg hover:bg-primary-700 transition"
+              aria-label="Open customer support page"
+            >
+              Support
+            </a>
             <footer className="border-t border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900">
               <div className="max-w-6xl mx-auto px-4 py-10 text-slate-600 dark:text-slate-400">
                 <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
