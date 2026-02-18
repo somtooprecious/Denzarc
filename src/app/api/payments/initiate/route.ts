@@ -38,9 +38,35 @@ export async function POST(req: NextRequest) {
       metadata: { user_id: profileId },
     }),
   });
-  const data = await res.json();
-  if (!data.status) return NextResponse.json({ error: data.message ?? 'Paystack error' }, { status: 502 });
+  const data = await res.json().catch(() => null);
+  if (!res.ok || !data?.status) {
+    console.error('Paystack initialize failed', {
+      httpStatus: res.status,
+      reference,
+      profileId,
+      paystackMessage: data?.message ?? null,
+      paystackCode: data?.code ?? null,
+      paystackStatus: data?.status ?? null,
+      paystackData: data?.data ?? null,
+    });
+    return NextResponse.json(
+      {
+        error: data?.message ?? `Paystack initialize failed (${res.status})`,
+        reference,
+      },
+      { status: 502 }
+    );
+  }
+
+  if (!data.data?.authorization_url) {
+    console.error('Paystack initialize missing authorization_url', {
+      reference,
+      profileId,
+      paystackData: data?.data ?? null,
+    });
+    return NextResponse.json({ error: 'No authorization URL returned by Paystack', reference }, { status: 502 });
+  }
 
   await supabase.from('payments').insert({ user_id: profileId, amount: PRO_AMOUNT / 100, reference, status: 'pending' });
-  return NextResponse.json({ authorization_url: data.data?.authorization_url, reference: data.data?.reference });
+  return NextResponse.json({ authorization_url: data.data.authorization_url, reference: data.data?.reference ?? reference });
 }
