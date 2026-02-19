@@ -17,11 +17,12 @@ interface InvoiceActionsProps {
 }
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || (typeof window !== 'undefined' ? window.location.origin : '');
+const ADMIN_NOTIFY_EMAIL = process.env.NEXT_PUBLIC_SUPPORT_EMAIL || 'somtooprecious1@gmail.com';
 
 export function InvoiceActions({ invoice }: InvoiceActionsProps) {
   const [loadingPdf, setLoadingPdf] = useState(false);
   const [sendingEmail, setSendingEmail] = useState(false);
-  const [sendingReminder, setSendingReminder] = useState<'email' | 'sms' | null>(null);
+  const [sendingReminder, setSendingReminder] = useState<'email' | 'admin' | null>(null);
   const needsPayment = invoice.status === 'unpaid' || invoice.status === 'partial';
   const invoiceUrl = typeof window !== 'undefined'
     ? `${window.location.origin}/invoices/${invoice.id}`
@@ -55,32 +56,47 @@ export function InvoiceActions({ invoice }: InvoiceActionsProps) {
     window.print();
   }
 
-  async function handlePaymentReminder(channel: 'email' | 'sms') {
-    const to = channel === 'email' ? invoice.customer_email : invoice.customer_phone;
-    if (!to) { toast.error(channel === 'email' ? 'Add customer email first' : 'Add customer phone for SMS'); return; }
-    setSendingReminder(channel);
+  async function handlePaymentReminder() {
+    const to = invoice.customer_email;
+    if (!to) { toast.error('Add customer email first'); return; }
+    setSendingReminder('email');
     try {
       const invoiceUrl = typeof window !== 'undefined' ? `${window.location.origin}/invoices/${invoice.id}` : '';
-      if (channel === 'email') {
-        const res = await fetch('/api/notifications/email', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            to,
-            subject: `Payment reminder: Invoice #${invoice.invoice_number}`,
-            html: `<p>Hi${invoice.customer_name ? ` ${invoice.customer_name}` : ''},</p><p>This is a friendly reminder that invoice #${invoice.invoice_number} (₦${Number(invoice.total).toLocaleString()}) is ${invoice.status === 'partial' ? 'partially paid' : 'outstanding'}.</p><p><a href="${invoiceUrl}">View & pay invoice</a></p><p>Thank you.</p>`,
-          }),
-        });
-        if (!res.ok) throw new Error((await res.json()).error ?? 'Failed');
-        toast.success('Payment reminder sent via email');
-      } else {
-        const msg = `Payment reminder: Invoice #${invoice.invoice_number} - ₦${Number(invoice.total).toLocaleString()} outstanding. Pay: ${invoiceUrl}`;
-        const res = await fetch('/api/notifications/whatsapp', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ to: invoice.customer_phone, message: msg }) });
-        if (!res.ok) throw new Error((await res.json()).error ?? 'Failed');
-        toast.success('Payment reminder sent via SMS');
-      }
+      const res = await fetch('/api/notifications/email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          to,
+          subject: `Payment reminder: Invoice #${invoice.invoice_number}`,
+          html: `<p>Hi${invoice.customer_name ? ` ${invoice.customer_name}` : ''},</p><p>This is a friendly reminder that invoice #${invoice.invoice_number} (₦${Number(invoice.total).toLocaleString()}) is ${invoice.status === 'partial' ? 'partially paid' : 'outstanding'}.</p><p><a href="${invoiceUrl}">View & pay invoice</a></p><p>Thank you.</p>`,
+        }),
+      });
+      if (!res.ok) throw new Error((await res.json()).error ?? 'Failed');
+      toast.success('Payment reminder sent via email');
     } catch (e) {
       toast.error(e instanceof Error ? e.message : 'Notification not configured');
+    } finally {
+      setSendingReminder(null);
+    }
+  }
+
+  async function handleAdminReminderNotification() {
+    setSendingReminder('admin');
+    try {
+      const invoiceUrl = typeof window !== 'undefined' ? `${window.location.origin}/invoices/${invoice.id}` : '';
+      const res = await fetch('/api/notifications/email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          to: ADMIN_NOTIFY_EMAIL,
+          subject: `Admin alert: Reminder triggered for invoice #${invoice.invoice_number}`,
+          html: `<p>A payment reminder was triggered for invoice <strong>#${invoice.invoice_number}</strong>.</p><p>Customer: ${invoice.customer_name ?? 'N/A'}</p><p>Amount: ₦${Number(invoice.total).toLocaleString()}</p><p>Status: ${invoice.status ?? 'N/A'}</p><p>Invoice link: <a href="${invoiceUrl}">${invoiceUrl}</a></p>`,
+        }),
+      });
+      if (!res.ok) throw new Error((await res.json()).error ?? 'Failed');
+      toast.success('Admin notification sent via email');
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Email not configured');
     } finally {
       setSendingReminder(null);
     }
@@ -152,11 +168,11 @@ export function InvoiceActions({ invoice }: InvoiceActionsProps) {
       </a>
       {needsPayment && (
         <>
-          <button type="button" onClick={() => handlePaymentReminder('email')} disabled={sendingReminder !== null || !invoice.customer_email} className="px-4 py-2 border border-amber-500 text-amber-700 dark:text-amber-400 text-sm font-medium rounded-lg hover:bg-amber-50 dark:hover:bg-amber-900/20 disabled:opacity-50" title="Send payment reminder via email">
+          <button type="button" onClick={handlePaymentReminder} disabled={sendingReminder !== null || !invoice.customer_email} className="px-4 py-2 border border-amber-500 text-amber-700 dark:text-amber-400 text-sm font-medium rounded-lg hover:bg-amber-50 dark:hover:bg-amber-900/20 disabled:opacity-50" title="Send payment reminder via email">
             {sendingReminder === 'email' ? 'Sending…' : 'Payment reminder (email)'}
           </button>
-          <button type="button" onClick={() => handlePaymentReminder('sms')} disabled={sendingReminder !== null || !invoice.customer_phone} className="px-4 py-2 border border-amber-500 text-amber-700 dark:text-amber-400 text-sm font-medium rounded-lg hover:bg-amber-50 dark:hover:bg-amber-900/20 disabled:opacity-50" title="Send payment reminder via SMS">
-            {sendingReminder === 'sms' ? 'Sending…' : 'Payment reminder (SMS)'}
+          <button type="button" onClick={handleAdminReminderNotification} disabled={sendingReminder !== null} className="px-4 py-2 border border-sky-500 text-sky-700 dark:text-sky-400 text-sm font-medium rounded-lg hover:bg-sky-50 dark:hover:bg-sky-900/20 disabled:opacity-50" title="Notify admin via email">
+            {sendingReminder === 'admin' ? 'Sending…' : 'Payment reminder (admin email)'}
           </button>
         </>
       )}

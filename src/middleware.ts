@@ -10,6 +10,7 @@ const isPublicRoute = createRouteMatcher([
   '/pricing',
   '/robots.txt',
   '/sitemap.xml',
+  '/api/cron/notifications',
   '/api/payments/verify',
 ]);
 

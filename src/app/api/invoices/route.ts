@@ -4,6 +4,9 @@ import { getSupabaseProfileId } from '@/lib/auth';
 import { createInvoiceSchema } from '@/lib/validations/invoice';
 import { nextInvoiceNumber } from '@/lib/invoice-number';
 import { canCreateInvoice, FREE_INVOICE_LIMIT } from '@/lib/plan';
+import { sendEmail } from '@/lib/email';
+
+const APP_URL = (process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000').replace(/\/$/, '');
 
 function computeTotals(
   items: { quantity: number; unit_price: number; total: number }[],
@@ -159,6 +162,24 @@ export async function POST(req: NextRequest) {
       updated_at: new Date().toISOString(),
     })
     .eq('id', profileId);
+
+  if (inserted?.customer_email) {
+    const invoiceUrl = `${APP_URL}/invoices/${inserted.id}`;
+    const subject = `Invoice #${inserted.invoice_number} is ready`;
+    const emailResult = await sendEmail({
+      to: inserted.customer_email,
+      subject,
+      html: `<p>Hi${inserted.customer_name ? ` ${inserted.customer_name}` : ''},</p><p>Your invoice <strong>#${inserted.invoice_number}</strong> (${Number(inserted.total).toLocaleString()} NGN) is ready.</p><p>View invoice: <a href="${invoiceUrl}">${invoiceUrl}</a></p>`,
+      text: `Hi${inserted.customer_name ? ` ${inserted.customer_name}` : ''}, your invoice #${inserted.invoice_number} (${Number(inserted.total).toLocaleString()} NGN) is ready. View invoice: ${invoiceUrl}`,
+    });
+    if (!emailResult.ok) {
+      console.error('Auto invoice email failed', {
+        invoiceId: inserted.id,
+        customerEmail: inserted.customer_email,
+        error: emailResult.error,
+      });
+    }
+  }
 
   return NextResponse.json(inserted);
 }

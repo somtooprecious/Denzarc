@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { ClerkProvider } from '@clerk/nextjs';
 import { Toaster } from 'react-hot-toast';
 import { Providers } from '@/components/providers/Providers';
+import { SmartsuppWidget } from '@/components/SmartsuppWidget';
 import './globals.css';
 
 const baseUrl = (process.env.NEXT_PUBLIC_APP_URL || 'https://denzarc.com').replace(/\/$/, '');
@@ -242,6 +243,7 @@ export default function RootLayout({
               </div>
             </footer>
             <Toaster position="top-right" toastOptions={{ duration: 4000 }} />
+            <SmartsuppWidget />
           </Providers>
         </body>
       </html>

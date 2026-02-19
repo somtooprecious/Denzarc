@@ -19,9 +19,13 @@ A responsive, modern Small Business Tools SaaS with **Invoice/Receipt Generator*
    - `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` – Supabase project
    - `PAYSTACK_SECRET_KEY`, `NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY` (optional for payments)
    - `NEXT_PUBLIC_SUPPORT_EMAIL` (support inbox used by the support page mailto)
+   - `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_PASS`, `EMAIL_FROM` (for automated email notifications)
+   - `ADMIN_NOTIFICATION_EMAIL` (optional: receive email when a user upgrades to Pro)
    - `TERMII_API_KEY`, `TERMII_SENDER_ID` (optional for SMS/WhatsApp)
    - `OPENAI_API_KEY` (optional for AI insights)
    - `NEXT_PUBLIC_APP_URL` – e.g. `http://localhost:3000` or your production URL
+   - `NEXT_PUBLIC_SMARTSUPP_KEY` (optional for Smartsupp live chat)
+   - `CRON_SECRET` (required for scheduled notification endpoint auth)
 
 3. **Database**
 
@@ -50,7 +54,7 @@ A responsive, modern Small Business Tools SaaS with **Invoice/Receipt Generator*
 - **Inventory (Pro):** Products, stock in/out, low-stock alerts.
 - **AI insights (Pro):** OpenAI-powered analysis and predictions.
 - **Payments:** Paystack for Pro upgrades.
-- **Notifications:** Email + Termii (SMS/WhatsApp) – API routes ready.
+- **Notifications:** SMTP email + Termii (SMS/WhatsApp) – API routes ready.
 
 ## API routes
 
@@ -58,6 +62,7 @@ A responsive, modern Small Business Tools SaaS with **Invoice/Receipt Generator*
 - `POST /api/sales`, `POST /api/expenses`
 - `POST /api/payments/initiate`, `GET /api/payments/verify`
 - `POST /api/notifications/email`, `POST /api/notifications/whatsapp`
+- `GET /api/cron/notifications` (daily automated subscription + payment reminders via Termii)
 - `POST /api/ai/insights`
 
 ## Deploy

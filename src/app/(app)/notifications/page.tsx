@@ -22,13 +22,12 @@ export default async function NotificationsPage() {
     <div className="space-y-6">
       <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Notifications</h1>
       <p className="text-slate-600 dark:text-slate-400">
-        Email notifications: Invoice sent, payment reminder, low stock alert. One WhatsApp/SMS service (Termii): Invoice link, payment reminder, subscription expiry reminder.
+        Email notifications: invoice sent, payment reminders, low stock alerts, and subscription expiry reminders.
       </p>
       <NotificationsPanel
         lowStockProducts={lowStock}
         unpaidInvoices={invoices ?? []}
         userEmail={profile?.email ?? null}
-        userPhone={(profile as { phone?: string | null })?.phone ?? null}
         subscriptionEnd={(profile as { subscription_end?: string | null })?.subscription_end ?? null}
         plan={plan}
       />

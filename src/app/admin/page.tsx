@@ -19,6 +19,14 @@ function toDateInput(value: string | undefined) {
   return value;
 }
 
+function daysUntil(date: string | null | undefined) {
+  if (!date) return null;
+  const now = new Date();
+  const target = new Date(date);
+  const msPerDay = 24 * 60 * 60 * 1000;
+  return Math.ceil((target.getTime() - now.getTime()) / msPerDay);
+}
+
 export default async function AdminPage({ searchParams }: { searchParams: SearchParams }) {
   const { userId } = await auth();
   if (!userId) redirect('/sign-in');
@@ -38,6 +46,22 @@ export default async function AdminPage({ searchParams }: { searchParams: Search
   let usersReq = supabase.from('users').select('id, email, plan, subscription_start, subscription_end');
   if (usersQuery) usersReq = usersReq.ilike('email', `%${usersQuery}%`);
   if (usersPlan) usersReq = usersReq.eq('plan', usersPlan);
+
+  const proExpiringReq = supabase
+    .from('users')
+    .select('id, email, plan, subscription_start, subscription_end')
+    .eq('plan', 'pro')
+    .not('subscription_end', 'is', null)
+    .order('subscription_end', { ascending: true })
+    .limit(25);
+
+  const newProReq = supabase
+    .from('users')
+    .select('id, email, plan, subscription_start, subscription_end')
+    .eq('plan', 'pro')
+    .not('subscription_start', 'is', null)
+    .order('subscription_start', { ascending: false })
+    .limit(25);
 
   let paymentsReq = supabase
     .from('payments')
@@ -66,6 +90,8 @@ export default async function AdminPage({ searchParams }: { searchParams: Search
     { count: customersCount },
     { count: productsCount },
     { count: stockMovementsCount },
+    { data: proExpiringUsers },
+    { data: newProUsers },
   ] = await Promise.all([
     usersReq,
     paymentsReq,
@@ -75,11 +101,23 @@ export default async function AdminPage({ searchParams }: { searchParams: Search
     supabase.from('customers').select('id', { count: 'exact', head: true }),
     supabase.from('products').select('id', { count: 'exact', head: true }),
     supabase.from('stock_movements').select('id', { count: 'exact', head: true }),
+    proExpiringReq,
+    newProReq,
   ]);
 
   const userCount = users?.length ?? 0;
   const paymentCount = paymentsCount ?? 0;
   const totalRevenue = (payments ?? []).reduce((sum, p) => sum + Number(p.amount || 0), 0);
+  const expiringSoon = (proExpiringUsers ?? []).filter((u) => {
+    const days = daysUntil(u.subscription_end);
+    return days !== null && days >= 0 && days <= 7;
+  });
+  const justSubscribed = (newProUsers ?? []).filter((u) => {
+    if (!u.subscription_start) return false;
+    const start = new Date(u.subscription_start).getTime();
+    const dayAgo = Date.now() - 24 * 60 * 60 * 1000;
+    return start >= dayAgo;
+  });
 
   return (
     <div className="space-y-8">
@@ -125,6 +163,54 @@ export default async function AdminPage({ searchParams }: { searchParams: Search
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
+        <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden">
+          <div className="px-4 py-3 border-b border-slate-200 dark:border-slate-700 font-semibold text-slate-900 dark:text-white">
+            Pro Subscription Watch
+          </div>
+          <div className="p-4 space-y-4">
+            <div className="grid sm:grid-cols-2 gap-3">
+              <div className="rounded-lg border border-slate-200 dark:border-slate-700 p-3">
+                <p className="text-xs text-slate-500 dark:text-slate-400">New Pro (last 24h)</p>
+                <p className="text-2xl font-semibold text-slate-900 dark:text-white">{justSubscribed.length}</p>
+              </div>
+              <div className="rounded-lg border border-slate-200 dark:border-slate-700 p-3">
+                <p className="text-xs text-slate-500 dark:text-slate-400">Expiring in 7 days</p>
+                <p className="text-2xl font-semibold text-slate-900 dark:text-white">{expiringSoon.length}</p>
+              </div>
+            </div>
+            <p className="text-xs text-slate-500 dark:text-slate-400">
+              Use this section to follow up with Pro users before expiry.
+            </p>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="bg-slate-50 dark:bg-slate-900/40 text-left">
+                    <th className="py-2 px-3">Email</th>
+                    <th className="py-2 px-3">Ends</th>
+                    <th className="py-2 px-3">Days left</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {expiringSoon.slice(0, 10).map((u) => (
+                    <tr key={u.id} className="border-t border-slate-100 dark:border-slate-700/60">
+                      <td className="py-2 px-3">{u.email ?? '—'}</td>
+                      <td className="py-2 px-3">{u.subscription_end ? new Date(u.subscription_end).toLocaleDateString() : '—'}</td>
+                      <td className="py-2 px-3">{daysUntil(u.subscription_end) ?? '—'}</td>
+                    </tr>
+                  ))}
+                  {expiringSoon.length === 0 && (
+                    <tr>
+                      <td className="py-3 px-3 text-slate-500" colSpan={3}>
+                        No Pro subscriptions expiring in the next 7 days.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
         <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden">
           <div className="px-4 py-3 border-b border-slate-200 dark:border-slate-700 font-semibold text-slate-900 dark:text-white">
             Payments

@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { sendEmail } from '@/lib/email';
 
 const PAYSTACK_SECRET = process.env.PAYSTACK_SECRET_KEY;
 const PRO_CURRENCY = process.env.PRO_PLAN_CURRENCY ?? 'NGN';
+const ADMIN_NOTIFICATION_EMAIL = process.env.ADMIN_NOTIFICATION_EMAIL ?? process.env.NEXT_PUBLIC_SUPPORT_EMAIL;
 
 export async function GET(req: NextRequest) {
   const ref =
@@ -72,6 +74,21 @@ export async function GET(req: NextRequest) {
     subscription_end: end.toISOString(),
     updated_at: now.toISOString(),
   }).eq('id', userId);
+
+  if (ADMIN_NOTIFICATION_EMAIL) {
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('email')
+      .eq('id', userId)
+      .single();
+    const customerEmail = profile?.email ?? 'Unknown';
+    await sendEmail({
+      to: ADMIN_NOTIFICATION_EMAIL,
+      subject: `New Pro subscription: ${customerEmail}`,
+      html: `<p>A user upgraded to Pro.</p><p><strong>User ID:</strong> ${userId}</p><p><strong>Email:</strong> ${customerEmail}</p><p><strong>Reference:</strong> ${ref}</p><p><strong>Subscription end:</strong> ${end.toISOString()}</p>`,
+      text: `A user upgraded to Pro. User ID: ${userId}. Email: ${customerEmail}. Reference: ${ref}. Subscription end: ${end.toISOString()}`,
+    });
+  }
 
   return NextResponse.redirect(new URL('/dashboard?upgraded=pro', req.url));
 }

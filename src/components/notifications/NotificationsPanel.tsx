@@ -8,7 +8,6 @@ interface NotificationsPanelProps {
   lowStockProducts: { name: string; quantity: number; low_stock_threshold: number }[];
   unpaidInvoices: { id: string; invoice_number: string; total: number; customer_phone: string | null }[];
   userEmail: string | null;
-  userPhone: string | null;
   subscriptionEnd: string | null;
   plan: 'free' | 'pro';
 }
@@ -17,7 +16,6 @@ export function NotificationsPanel({
   lowStockProducts,
   unpaidInvoices,
   userEmail,
-  userPhone,
   subscriptionEnd,
   plan,
 }: NotificationsPanelProps) {
@@ -41,17 +39,26 @@ export function NotificationsPanel({
   }
 
   async function handleSubscriptionExpiryReminder() {
-    if (!userPhone) { toast.error('Add your phone in Settings to receive reminders'); return; }
+    if (!userEmail) { toast.error('Add your email in Settings to receive reminders'); return; }
     if (!subscriptionEnd) { toast.success('No active subscription'); return; }
     setSendingExpiry(true);
     try {
       const date = new Date(subscriptionEnd).toLocaleDateString();
-      const msg = `Businesstool Pro: Your subscription expires on ${date}. Renew at ${typeof window !== 'undefined' ? window.location.origin : ''}/pricing`;
-      const res = await fetch('/api/notifications/whatsapp', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ to: userPhone, message: msg }) });
+      const renewUrl = `${typeof window !== 'undefined' ? window.location.origin : ''}/pricing`;
+      const res = await fetch('/api/notifications/email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          to: userEmail,
+          subject: `Denzarc Pro subscription expiry reminder`,
+          html: `<p>Your Denzarc Pro subscription expires on <strong>${date}</strong>.</p><p>Renew here: <a href="${renewUrl}">${renewUrl}</a></p>`,
+          text: `Your Denzarc Pro subscription expires on ${date}. Renew here: ${renewUrl}`,
+        }),
+      });
       if (!res.ok) throw new Error((await res.json()).error ?? 'Failed');
-      toast.success('Subscription reminder sent to your phone');
+      toast.success('Subscription reminder sent via email');
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : 'SMS not configured');
+      toast.error(e instanceof Error ? e.message : 'Email not configured');
     } finally {
       setSendingExpiry(false);
     }
@@ -74,14 +81,14 @@ export function NotificationsPanel({
           )}
         </div>
         <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-6">
-          <h2 className="font-semibold text-slate-900 dark:text-white mb-2">WhatsApp / SMS (Termii) – one service for all SMS</h2>
+          <h2 className="font-semibold text-slate-900 dark:text-white mb-2">Email reminders</h2>
           <ul className="space-y-3 text-sm text-slate-600 dark:text-slate-400 mb-4">
-            <li>• Invoice link – Share via WhatsApp from invoice detail</li>
-            <li>• Payment reminder – From unpaid invoice, click &quot;Payment reminder (SMS)&quot;</li>
-            <li>• Subscription expiry reminder – Get reminder before your Pro plan expires</li>
+            <li>• Invoice link – Automatically sent to customer email on invoice creation</li>
+            <li>• Payment reminder – From unpaid invoice, click &quot;Payment reminder (email)&quot;</li>
+            <li>• Subscription expiry reminder – Send reminder to your email</li>
           </ul>
           {plan === 'pro' && subscriptionEnd && (
-            <button type="button" onClick={handleSubscriptionExpiryReminder} disabled={sendingExpiry || !userPhone} className="px-3 py-1.5 text-xs border border-amber-500 text-amber-700 dark:text-amber-400 rounded-lg hover:bg-amber-50 dark:hover:bg-amber-900/20 disabled:opacity-50">
+            <button type="button" onClick={handleSubscriptionExpiryReminder} disabled={sendingExpiry || !userEmail} className="px-3 py-1.5 text-xs border border-amber-500 text-amber-700 dark:text-amber-400 rounded-lg hover:bg-amber-50 dark:hover:bg-amber-900/20 disabled:opacity-50">
               {sendingExpiry ? 'Sending…' : 'Send subscription expiry reminder'}
             </button>
           )}
@@ -95,8 +102,8 @@ export function NotificationsPanel({
           <Link href="/inventory" className="px-4 py-2 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 text-sm font-medium rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition">View inventory</Link>
         </div>
       </div>
-      {(!userEmail || !userPhone) && (
-        <p className="text-sm text-amber-600 dark:text-amber-400">Add your email and phone in Settings to receive notifications.</p>
+      {!userEmail && (
+        <p className="text-sm text-amber-600 dark:text-amber-400">Add your email in Settings to receive notifications.</p>
       )}
     </div>
   );
