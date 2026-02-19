@@ -97,6 +97,59 @@ export async function GET(req: NextRequest) {
     }
   }
 
+  const { data: products } = await supabase
+    .from('products')
+    .select('user_id, name, quantity, low_stock_threshold');
+
+  const lowStockByUser = new Map<string, { name: string; quantity: number; low_stock_threshold: number }[]>();
+  for (const product of products ?? []) {
+    const qty = Number(product.quantity ?? 0);
+    const threshold = Number(product.low_stock_threshold ?? 0);
+    if (threshold <= 0 || qty > threshold) continue;
+    const userId = String(product.user_id);
+    const existing = lowStockByUser.get(userId) ?? [];
+    existing.push({
+      name: String(product.name ?? 'Unnamed product'),
+      quantity: qty,
+      low_stock_threshold: threshold,
+    });
+    lowStockByUser.set(userId, existing);
+  }
+
+  const lowStockUserIds = Array.from(lowStockByUser.keys());
+  if (lowStockUserIds.length > 0) {
+    const { data: stockUsers } = await supabase
+      .from('profiles')
+      .select('id, email')
+      .in('id', lowStockUserIds)
+      .not('email', 'is', null);
+
+    for (const user of stockUsers ?? []) {
+      const items = lowStockByUser.get(String(user.id)) ?? [];
+      if (!user.email || items.length === 0) continue;
+      const htmlRows = items
+        .slice(0, 20)
+        .map((item) => `<li>${item.name}: ${item.quantity} left (threshold ${item.low_stock_threshold})</li>`)
+        .join('');
+      const textRows = items
+        .slice(0, 20)
+        .map((item) => `- ${item.name}: ${item.quantity} left (threshold ${item.low_stock_threshold})`)
+        .join('\n');
+
+      const emailResult = await sendEmail({
+        to: String(user.email),
+        subject: `Low stock alert (${items.length} item${items.length > 1 ? 's' : ''})`,
+        html: `<p>The following products are low in stock:</p><ul>${htmlRows}</ul><p>View inventory: <a href="${APP_URL}/inventory">${APP_URL}/inventory</a></p>`,
+        text: `The following products are low in stock:\n${textRows}\n\nView inventory: ${APP_URL}/inventory`,
+      });
+      if (emailResult.ok) {
+        sent.push(`low-stock:email:${user.id}:${items.length}`);
+      } else {
+        failed.push({ target: `low-stock:email:${user.id}`, reason: emailResult.error ?? 'unknown' });
+      }
+    }
+  }
+
   return NextResponse.json({
     ok: true,
     sentCount: sent.length,

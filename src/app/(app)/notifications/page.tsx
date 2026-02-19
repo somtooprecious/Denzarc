@@ -23,6 +23,7 @@ export default async function NotificationsPage() {
       <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Notifications</h1>
       <p className="text-slate-600 dark:text-slate-400">
         Email notifications: invoice sent, payment reminders, low stock alerts, and subscription expiry reminders.
+        Automated reminders run daily.
       </p>
       <NotificationsPanel
         lowStockProducts={lowStock}

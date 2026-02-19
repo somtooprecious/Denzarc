@@ -62,7 +62,7 @@ A responsive, modern Small Business Tools SaaS with **Invoice/Receipt Generator*
 - `POST /api/sales`, `POST /api/expenses`
 - `POST /api/payments/initiate`, `GET /api/payments/verify`
 - `POST /api/notifications/email`, `POST /api/notifications/whatsapp`
-- `GET /api/cron/notifications` (daily automated subscription + payment reminders via Termii)
+- `GET /api/cron/notifications` (daily automated email reminders: subscription expiry, payment due/overdue, and low stock alerts)
 - `POST /api/ai/insights`
 
 ## Deploy
