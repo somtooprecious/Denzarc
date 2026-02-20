@@ -2,7 +2,6 @@ import { redirect } from 'next/navigation';
 import { auth } from '@clerk/nextjs/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { isAdminUser } from '@/lib/admin';
-import { AdminSmsSectionWrapper } from '@/components/admin/AdminSmsSectionWrapper';
 
 function formatMoney(amount: number) {
   return `₦${Number(amount || 0).toLocaleString()}`;
@@ -244,17 +243,47 @@ export default async function AdminPage({ searchParams }: { searchParams: Search
           </div>
         </div>
 
-        <AdminSmsSectionWrapper
-          profiles={(profilesForSms ?? []).map((p) => ({
-            id: String(p.id),
-            email: p.email != null ? String(p.email) : null,
-            phone: p.phone != null ? String(p.phone) : null,
-            full_name: p.full_name != null ? String(p.full_name) : null,
-            plan: p.plan != null ? String(p.plan) : null,
-            subscription_end: p.subscription_end != null ? String(p.subscription_end) : null,
-            created_at: p.created_at != null ? String(p.created_at) : null,
-          }))}
-        />
+        <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden">
+          <div className="px-4 py-3 border-b border-slate-200 dark:border-slate-700 font-semibold text-slate-900 dark:text-white">
+            User contacts &amp; SMS (Termii)
+          </div>
+          <div className="p-4 space-y-4">
+            <p className="text-sm text-slate-600 dark:text-slate-400">
+              To send an SMS, go to <a href="/admin/sms" className="text-primary-600 dark:text-primary-400 underline font-medium">Send SMS</a>.
+            </p>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="bg-slate-50 dark:bg-slate-900/40 text-left">
+                    <th className="py-2 px-3">Email</th>
+                    <th className="py-2 px-3">Phone</th>
+                    <th className="py-2 px-3">Name</th>
+                    <th className="py-2 px-3">Plan</th>
+                    <th className="py-2 px-3">Subscription end</th>
+                    <th className="py-2 px-3">Joined</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {(profilesForSms ?? []).map((p) => (
+                    <tr key={p.id} className="border-t border-slate-100 dark:border-slate-700/60">
+                      <td className="py-2 px-3">{p.email ?? '—'}</td>
+                      <td className="py-2 px-3">{p.phone ? String(p.phone) : '—'}</td>
+                      <td className="py-2 px-3">{p.full_name ?? '—'}</td>
+                      <td className="py-2 px-3">{p.plan ?? '—'}</td>
+                      <td className="py-2 px-3">{p.subscription_end ? new Date(String(p.subscription_end)).toLocaleDateString() : '—'}</td>
+                      <td className="py-2 px-3">{p.created_at ? new Date(String(p.created_at)).toLocaleDateString() : '—'}</td>
+                    </tr>
+                  ))}
+                  {((profilesForSms ?? []).length === 0) && (
+                    <tr>
+                      <td className="py-3 px-3 text-slate-500" colSpan={6}>No profiles found.</td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
 
         <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden lg:col-span-2">
           <div className="px-4 py-3 border-b border-slate-200 dark:border-slate-700 font-semibold text-slate-900 dark:text-white">
