@@ -127,7 +127,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Search
     const threshold = Number(p.low_stock_threshold ?? 0);
     return threshold > 0 && qty <= threshold;
   });
-  const lowStockUserIds = [...new Set(lowStockProducts.map((p) => String(p.user_id)))];
+  const lowStockUserIds = Array.from(new Set(lowStockProducts.map((p) => String(p.user_id))));
   const { data: lowStockProfiles } =
     lowStockUserIds.length > 0
       ? await supabase.from('profiles').select('id, email, full_name').in('id', lowStockUserIds)
