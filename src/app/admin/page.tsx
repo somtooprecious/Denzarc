@@ -244,7 +244,17 @@ export default async function AdminPage({ searchParams }: { searchParams: Search
           </div>
         </div>
 
-        <AdminSmsSection profiles={profilesForSms ?? []} />
+        <AdminSmsSection
+          profiles={(profilesForSms ?? []).map((p) => ({
+            id: String(p.id),
+            email: p.email != null ? String(p.email) : null,
+            phone: p.phone != null ? String(p.phone) : null,
+            full_name: p.full_name != null ? String(p.full_name) : null,
+            plan: p.plan != null ? String(p.plan) : null,
+            subscription_end: p.subscription_end != null ? String(p.subscription_end) : null,
+            created_at: p.created_at != null ? String(p.created_at) : null,
+          }))}
+        />
 
         <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden lg:col-span-2">
           <div className="px-4 py-3 border-b border-slate-200 dark:border-slate-700 font-semibold text-slate-900 dark:text-white">

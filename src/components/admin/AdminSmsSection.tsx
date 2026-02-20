@@ -15,20 +15,35 @@ export type ProfileForSms = {
   created_at: string | null;
 };
 
-export function AdminSmsSection({ profiles }: { profiles: ProfileForSms[] }) {
+export function AdminSmsSection({ profiles }: { profiles?: ProfileForSms[] | null }) {
   const [recipient, setRecipient] = useState<string>('');
   const [customPhone, setCustomPhone] = useState('');
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const withPhone = profiles
-    .filter((p) => p.phone && String(p.phone).trim())
+  const profilesList = Array.isArray(profiles) ? profiles : [];
+  const withPhone = profilesList
+    .filter((p) => p && p.phone && String(p.phone).trim())
     .sort((a, b) => (isNewUser(b) ? 1 : 0) - (isNewUser(a) ? 1 : 0));
   const useCustom = recipient === '__custom__';
   function isNewUser(p: ProfileForSms) {
-    if (!p.created_at) return false;
-    const created = new Date(p.created_at).getTime();
-    return Date.now() - created < 14 * 24 * 60 * 60 * 1000;
+    if (!p || !p.created_at) return false;
+    try {
+      const created = new Date(String(p.created_at)).getTime();
+      if (Number.isNaN(created)) return false;
+      return Date.now() - created < 14 * 24 * 60 * 60 * 1000;
+    } catch {
+      return false;
+    }
+  }
+  function safeDate(value: string | null | undefined): string {
+    if (value == null || value === '') return '—';
+    try {
+      const d = new Date(String(value));
+      return Number.isNaN(d.getTime()) ? '—' : d.toLocaleDateString();
+    } catch {
+      return '—';
+    }
   }
 
   async function handleSend(e: React.FormEvent) {
@@ -82,30 +97,26 @@ export function AdminSmsSection({ profiles }: { profiles: ProfileForSms[] }) {
               </tr>
             </thead>
             <tbody>
-              {profiles.map((u) => (
-                <tr key={u.id} className="border-t border-slate-100 dark:border-slate-700/60">
+              {profilesList.map((u, i) => (
+                <tr key={u?.id ?? `row-${i}`} className="border-t border-slate-100 dark:border-slate-700/60">
                   <td className="py-2 px-3">
                     <span className="inline-flex items-center gap-1">
-                      {u.email ?? '—'}
-                      {isNewUser(u) && (
+                      {u?.email ?? '—'}
+                      {u && isNewUser(u) && (
                         <span className="text-xs px-1.5 py-0.5 rounded bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300">
                           New
                         </span>
                       )}
                     </span>
                   </td>
-                  <td className="py-2 px-3">{u.phone ? String(u.phone) : '—'}</td>
-                  <td className="py-2 px-3">{u.full_name ?? '—'}</td>
-                  <td className="py-2 px-3">{u.plan ?? '—'}</td>
-                  <td className="py-2 px-3">
-                    {u.subscription_end ? new Date(u.subscription_end).toLocaleDateString() : '—'}
-                  </td>
-                  <td className="py-2 px-3">
-                    {u.created_at ? new Date(u.created_at).toLocaleDateString() : '—'}
-                  </td>
+                  <td className="py-2 px-3">{u?.phone ? String(u.phone) : '—'}</td>
+                  <td className="py-2 px-3">{u?.full_name ?? '—'}</td>
+                  <td className="py-2 px-3">{u?.plan ?? '—'}</td>
+                  <td className="py-2 px-3">{safeDate(u?.subscription_end)}</td>
+                  <td className="py-2 px-3">{safeDate(u?.created_at)}</td>
                 </tr>
               ))}
-              {profiles.length === 0 && (
+              {profilesList.length === 0 && (
                 <tr>
                   <td className="py-3 px-3 text-slate-500" colSpan={6}>
                     No profiles found.
