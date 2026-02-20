@@ -2,7 +2,7 @@ import { redirect } from 'next/navigation';
 import { auth } from '@clerk/nextjs/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { isAdminUser } from '@/lib/admin';
-import { AdminSmsSection } from '@/components/admin/AdminSmsSection';
+import { AdminSmsSectionWrapper } from '@/components/admin/AdminSmsSectionWrapper';
 
 function formatMoney(amount: number) {
   return `₦${Number(amount || 0).toLocaleString()}`;
@@ -244,7 +244,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Search
           </div>
         </div>
 
-        <AdminSmsSection
+        <AdminSmsSectionWrapper
           profiles={(profilesForSms ?? []).map((p) => ({
             id: String(p.id),
             email: p.email != null ? String(p.email) : null,
