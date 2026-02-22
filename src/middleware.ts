@@ -17,7 +17,8 @@ const isPublicRoute = createRouteMatcher([
 
 export default clerkMiddleware(async (auth, request) => {
   const proto = request.headers.get('x-forwarded-proto');
-  if (proto === 'http') {
+  const isHttp = proto === 'http' || (typeof request.url === 'string' && request.url.startsWith('http://') && !request.url.includes('localhost'));
+  if (isHttp) {
     const url = request.nextUrl.clone();
     url.protocol = 'https:';
     return NextResponse.redirect(url, 301);
