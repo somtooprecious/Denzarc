@@ -4,7 +4,8 @@ import { sendEmail } from '@/lib/email';
 import { sendTermiiMessage } from '@/lib/termii';
 
 const CRON_SECRET = process.env.CRON_SECRET;
-const APP_URL = (process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000').replace(/\/$/, '');
+import { getAppUrl } from '@/lib/url';
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL ? getAppUrl() : 'http://localhost:3000'.replace(/\/$/, '');
 
 function toDateOnly(date: Date): Date {
   return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));

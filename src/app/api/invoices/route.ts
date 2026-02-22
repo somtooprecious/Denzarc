@@ -6,7 +6,8 @@ import { nextInvoiceNumber } from '@/lib/invoice-number';
 import { canCreateInvoice, FREE_INVOICE_LIMIT } from '@/lib/plan';
 import { sendEmail } from '@/lib/email';
 
-const APP_URL = (process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000').replace(/\/$/, '');
+import { getAppUrl } from '@/lib/url';
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL ? getAppUrl() : 'http://localhost:3000'.replace(/\/$/, '');
 
 function computeTotals(
   items: { quantity: number; unit_price: number; total: number }[],

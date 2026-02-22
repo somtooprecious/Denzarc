@@ -4,8 +4,9 @@ import { Toaster } from 'react-hot-toast';
 import { Providers } from '@/components/providers/Providers';
 import { SmartsuppWidget } from '@/components/SmartsuppWidget';
 import './globals.css';
+import { getAppUrl } from '@/lib/url';
 
-const baseUrl = (process.env.NEXT_PUBLIC_APP_URL || 'https://denzarc.com').replace(/\/$/, '');
+const baseUrl = getAppUrl();
 
 export const metadata: Metadata = {
   metadataBase: new URL(baseUrl),

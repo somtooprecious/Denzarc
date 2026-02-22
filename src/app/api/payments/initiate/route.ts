@@ -7,7 +7,9 @@ const PAYSTACK_SECRET = process.env.PAYSTACK_SECRET_KEY;
 const PRO_AMOUNT_NAIRA = Number(process.env.PRO_PLAN_AMOUNT ?? 2999);
 const PRO_AMOUNT_KOBO = Math.round(PRO_AMOUNT_NAIRA * 100);
 const PRO_CURRENCY = (process.env.PRO_PLAN_CURRENCY ?? 'NGN').toUpperCase();
-const APP_URL = (process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000').replace(/\/$/, '');
+import { getAppUrl } from '@/lib/url';
+
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL ? getAppUrl() : 'http://localhost:3000'.replace(/\/$/, '');
 
 export async function POST(req: NextRequest) {
   if (!PAYSTACK_SECRET) return NextResponse.json({ error: 'Paystack not configured' }, { status: 503 });

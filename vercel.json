@@ -1,8 +1,11 @@
 {
-  "crons": [
+  "crons": [{"path": "/api/cron/notifications", "schedule": "0 8 * * *"}],
+  "redirects": [
     {
-      "path": "/api/cron/notifications",
-      "schedule": "0 8 * * *"
+      "source": "/:path*",
+      "has": [{"type": "header", "key": "x-forwarded-proto", "value": "http"}],
+      "destination": "https://denzarc.com/:path*",
+      "permanent": true
     }
   ]
 }

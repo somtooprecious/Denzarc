@@ -1,6 +1,7 @@
 import { MetadataRoute } from 'next';
 
-const baseUrl = (process.env.NEXT_PUBLIC_APP_URL || 'https://denzarc.com').replace(/\/$/, '');
+import { getAppUrl } from '@/lib/url';
+const baseUrl = getAppUrl();
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const publicPaths = [
