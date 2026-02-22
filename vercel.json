@@ -5,7 +5,7 @@
       "source": "/:path*",
       "has": [
         {"type": "header", "key": "x-forwarded-proto", "value": "http"},
-        {"type": "host", "value": "www.denzarc.com"}
+        {"type": "header", "key": "host", "value": "www.denzarc.com"}
       ],
       "destination": "https://www.denzarc.com/:path*",
       "permanent": true
