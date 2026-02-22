@@ -1,4 +1,5 @@
 import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
+import { NextResponse } from 'next/server';
 
 const isPublicRoute = createRouteMatcher([
   '/',
@@ -15,6 +16,12 @@ const isPublicRoute = createRouteMatcher([
 ]);
 
 export default clerkMiddleware(async (auth, request) => {
+  const proto = request.headers.get('x-forwarded-proto');
+  if (proto === 'http') {
+    const url = request.nextUrl.clone();
+    url.protocol = 'https:';
+    return NextResponse.redirect(url, 301);
+  }
   if (!isPublicRoute(request)) {
     await auth.protect();
   }
