@@ -29,8 +29,11 @@ export async function POST(_req: NextRequest) {
   const claimEmail = (sessionClaims?.email as string | undefined)?.trim() ?? '';
   const profileEmail = (profile?.email as string | undefined)?.trim() ?? '';
   const isPlaceholder = profileEmail.endsWith('@placeholder.local');
-  const email = (isPlaceholder ? claimEmail : profileEmail) || claimEmail;
-  if (!email) return NextResponse.json({ error: 'No billing email found for this account' }, { status: 400 });
+  let email = (isPlaceholder ? claimEmail : profileEmail) || claimEmail;
+  if (!email) {
+    const randomPart = Math.random().toString(36).slice(2, 12);
+    email = `user-${randomPart}@denzarc.com`;
+  }
 
   if (email && email !== profileEmail) {
     await supabase.from('profiles').update({ email }).eq('id', profileId);
