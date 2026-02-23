@@ -6,6 +6,15 @@ import { SmartsuppWidget } from '@/components/SmartsuppWidget';
 import './globals.css';
 
 const baseUrl = (process.env.NEXT_PUBLIC_APP_URL || 'https://denzarc.com').replace(/\/$/, '');
+const hasClerkPublishableKey = Boolean(process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY);
+
+function AuthProvider({ children }: { children: React.ReactNode }) {
+  if (!hasClerkPublishableKey) {
+    return <>{children}</>;
+  }
+
+  return <ClerkProvider>{children}</ClerkProvider>;
+}
 
 export const metadata: Metadata = {
   metadataBase: new URL(baseUrl),
@@ -97,7 +106,7 @@ export default function RootLayout({
   };
 
   return (
-    <ClerkProvider>
+    <AuthProvider>
       <html lang="en" suppressHydrationWarning>
         <body className="antialiased min-h-screen">
           <script
@@ -247,6 +256,6 @@ export default function RootLayout({
           </Providers>
         </body>
       </html>
-    </ClerkProvider>
+    </AuthProvider>
   );
 }

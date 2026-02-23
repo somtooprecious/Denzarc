@@ -23,14 +23,22 @@ export async function POST(req: NextRequest) {
 
   const reference = `pro-${profileId}-${Date.now()}`;
   const clerkUser = await auth();
-  const email = (clerkUser.sessionClaims?.email as string) ?? profile?.email ?? '';
+  const email =  profile?.email ?? '';
   if (!email) return NextResponse.json({ error: 'No billing email found for this account' }, { status: 400 });
 
+  console.log({
+      email: email || undefined,
+      amount: PRO_AMOUNT,
+      currency: PRO_CURRENCY,
+      reference,
+      callback_url: `${APP_URL}/api/payments/verify`,
+      metadata: { user_id: profileId },
+    })
   const res = await fetch('https://api.paystack.co/transaction/initialize', {
     method: 'POST',
     headers: { Authorization: `Bearer ${PAYSTACK_SECRET}`, 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      email: email || undefined,
+      email: email,
       amount: PRO_AMOUNT,
       currency: PRO_CURRENCY,
       reference,

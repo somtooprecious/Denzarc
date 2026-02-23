@@ -8,6 +8,8 @@ export default function AppLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const hasClerkPublishableKey = Boolean(process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY);
+
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
       <header className="sticky top-0 z-10 border-b border-slate-200 dark:border-slate-700 bg-white/95 dark:bg-slate-800/95 backdrop-blur print:hidden">
@@ -26,14 +28,23 @@ export default function AppLayout({
             </Link>
             <DashboardNav />
             <div className="flex items-center gap-4">
-              <UserButton
-                afterSignOutUrl="/"
-                appearance={{
-                  elements: {
-                    userButtonPopoverFooter: 'hidden',
-                  },
-                }}
-              />
+              {hasClerkPublishableKey ? (
+                <UserButton
+                  afterSignOutUrl="/"
+                  appearance={{
+                    elements: {
+                      userButtonPopoverFooter: 'hidden',
+                    },
+                  }}
+                />
+              ) : (
+                <Link
+                  href="/sign-in"
+                  className="text-sm font-medium text-primary-600 hover:text-primary-700"
+                >
+                  Sign in
+                </Link>
+              )}
             </div>
           </div>
         </div>

@@ -67,6 +67,20 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
   );
 }
 
+export function SessionProviderNoAuth({ children }: { children: React.ReactNode }) {
+  async function refreshProfile() {
+    return;
+  }
+
+  return (
+    <SessionContext.Provider
+      value={{ user: null, profile: null, loading: false, refreshProfile }}
+    >
+      {children}
+    </SessionContext.Provider>
+  );
+}
+
 export function useSession() {
   const ctx = useContext(SessionContext);
   if (ctx === undefined) throw new Error('useSession must be used within SessionProvider');

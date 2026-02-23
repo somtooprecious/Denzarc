@@ -10,6 +10,7 @@ import { ThemeToggle } from '@/components/ThemeToggle';
 
 export default function HomePage() {
   const { user, profile, loading } = useSession();
+  const hasClerkPublishableKey = Boolean(process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY);
   const heroPhrases = useMemo(
     () => ['Small Business Tools', 'Run Your Business With Ease', 'Know Your Profit, Every Day'],
     []
@@ -94,11 +95,17 @@ export default function HomePage() {
                 </Link>
               )}
               <ThemeToggle className="text-slate-600 dark:text-slate-300 hover:text-primary-600 transition" />
-              <SignOutButton>
-                <button type="button" className="text-slate-600 dark:text-slate-300 hover:text-red-600">
-                  Sign out
-                </button>
-              </SignOutButton>
+              {hasClerkPublishableKey ? (
+                <SignOutButton>
+                  <button type="button" className="text-slate-600 dark:text-slate-300 hover:text-red-600">
+                    Sign out
+                  </button>
+                </SignOutButton>
+              ) : (
+                <Link href="/sign-in" className="text-slate-600 dark:text-slate-300 hover:text-primary-600">
+                  Sign in
+                </Link>
+              )}
             </nav>
             </div>
             <AnimatePresence>
@@ -140,11 +147,17 @@ export default function HomePage() {
                       </Link>
                     )}
                     <ThemeToggle className="text-left text-slate-700 dark:text-slate-200" />
-                    <SignOutButton>
-                      <button type="button" onClick={() => setNavOpen(false)} className="text-left text-red-600">
-                        Sign out
-                      </button>
-                    </SignOutButton>
+                    {hasClerkPublishableKey ? (
+                      <SignOutButton>
+                        <button type="button" onClick={() => setNavOpen(false)} className="text-left text-red-600">
+                          Sign out
+                        </button>
+                      </SignOutButton>
+                    ) : (
+                      <Link href="/sign-in" onClick={() => setNavOpen(false)} className="text-slate-700 dark:text-slate-200">
+                        Sign in
+                      </Link>
+                    )}
                   </div>
                 </motion.nav>
               )}
