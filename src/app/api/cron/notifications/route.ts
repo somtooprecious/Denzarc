@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { sendEmail } from '@/lib/email';
+import { sendTermiiMessage } from '@/lib/termii';
 
 const CRON_SECRET = process.env.CRON_SECRET;
-const APP_URL = (process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000').replace(/\/$/, '');
+import { getAppUrl } from '@/lib/url';
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL ? getAppUrl() : 'http://localhost:3000'.replace(/\/$/, '');
 
 function toDateOnly(date: Date): Date {
   return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
@@ -32,7 +34,7 @@ export async function GET(req: NextRequest) {
 
   const { data: proProfiles } = await supabase
     .from('profiles')
-    .select('id, email, subscription_end')
+    .select('id, email, phone, subscription_end')
     .eq('plan', 'pro')
     .not('subscription_end', 'is', null);
 
@@ -41,6 +43,8 @@ export async function GET(req: NextRequest) {
     const endDate = toDateOnly(subscriptionEnd);
     const daysLeft = daysBetween(today, endDate);
     if (![7, 3, 1].includes(daysLeft)) continue;
+
+    const smsText = `Denzarc: Your Pro subscription expires in ${daysLeft} day${daysLeft > 1 ? 's' : ''}. Renew: ${APP_URL}/pricing`;
 
     if (profile.email) {
       const emailResult = await sendEmail({
@@ -53,6 +57,15 @@ export async function GET(req: NextRequest) {
         sent.push(`subscription:email:${profile.id}:${daysLeft}d`);
       } else {
         failed.push({ target: `subscription:email:${profile.id}`, reason: emailResult.error ?? 'unknown' });
+      }
+    }
+
+    if (profile.phone && String(profile.phone).trim()) {
+      const smsResult = await sendTermiiMessage(String(profile.phone).trim(), smsText);
+      if (smsResult.ok) {
+        sent.push(`subscription:sms:${profile.id}:${daysLeft}d`);
+      } else {
+        failed.push({ target: `subscription:sms:${profile.id}`, reason: smsResult.error ?? 'unknown' });
       }
     }
   }
@@ -120,13 +133,12 @@ export async function GET(req: NextRequest) {
   if (lowStockUserIds.length > 0) {
     const { data: stockUsers } = await supabase
       .from('profiles')
-      .select('id, email')
-      .in('id', lowStockUserIds)
-      .not('email', 'is', null);
+      .select('id, email, phone')
+      .in('id', lowStockUserIds);
 
     for (const user of stockUsers ?? []) {
       const items = lowStockByUser.get(String(user.id)) ?? [];
-      if (!user.email || items.length === 0) continue;
+      if (items.length === 0) continue;
       const htmlRows = items
         .slice(0, 20)
         .map((item) => `<li>${item.name}: ${item.quantity} left (threshold ${item.low_stock_threshold})</li>`)
@@ -135,17 +147,29 @@ export async function GET(req: NextRequest) {
         .slice(0, 20)
         .map((item) => `- ${item.name}: ${item.quantity} left (threshold ${item.low_stock_threshold})`)
         .join('\n');
+      const smsText = `Denzarc: Low stock alert (${items.length} item${items.length > 1 ? 's' : ''}). ${items.slice(0, 3).map((i) => `${i.name}: ${i.quantity}`).join(', ')}. View: ${APP_URL}/inventory`;
 
-      const emailResult = await sendEmail({
-        to: String(user.email),
-        subject: `Low stock alert (${items.length} item${items.length > 1 ? 's' : ''})`,
-        html: `<p>The following products are low in stock:</p><ul>${htmlRows}</ul><p>View inventory: <a href="${APP_URL}/inventory">${APP_URL}/inventory</a></p>`,
-        text: `The following products are low in stock:\n${textRows}\n\nView inventory: ${APP_URL}/inventory`,
-      });
-      if (emailResult.ok) {
-        sent.push(`low-stock:email:${user.id}:${items.length}`);
-      } else {
-        failed.push({ target: `low-stock:email:${user.id}`, reason: emailResult.error ?? 'unknown' });
+      if (user.email) {
+        const emailResult = await sendEmail({
+          to: String(user.email),
+          subject: `Low stock alert (${items.length} item${items.length > 1 ? 's' : ''})`,
+          html: `<p>The following products are low in stock:</p><ul>${htmlRows}</ul><p>View inventory: <a href="${APP_URL}/inventory">${APP_URL}/inventory</a></p>`,
+          text: `The following products are low in stock:\n${textRows}\n\nView inventory: ${APP_URL}/inventory`,
+        });
+        if (emailResult.ok) {
+          sent.push(`low-stock:email:${user.id}:${items.length}`);
+        } else {
+          failed.push({ target: `low-stock:email:${user.id}`, reason: emailResult.error ?? 'unknown' });
+        }
+      }
+
+      if (user.phone && String(user.phone).trim()) {
+        const smsResult = await sendTermiiMessage(String(user.phone).trim(), smsText);
+        if (smsResult.ok) {
+          sent.push(`low-stock:sms:${user.id}:${items.length}`);
+        } else {
+          failed.push({ target: `low-stock:sms:${user.id}`, reason: smsResult.error ?? 'unknown' });
+        }
       }
     }
   }

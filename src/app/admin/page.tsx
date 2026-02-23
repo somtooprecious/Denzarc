@@ -81,6 +81,18 @@ export default async function AdminPage({ searchParams }: { searchParams: Search
   if (invoicesFrom) invoicesReq = invoicesReq.gte('issue_date', invoicesFrom);
   if (invoicesTo) invoicesReq = invoicesReq.lte('issue_date', invoicesTo);
 
+  const profilesForSmsReq = supabase
+    .from('profiles')
+    .select('id, email, phone, full_name, plan, subscription_end, created_at')
+    .order('created_at', { ascending: false })
+    .limit(200);
+
+  const productsReq = supabase
+    .from('products')
+    .select('id, user_id, name, quantity, low_stock_threshold')
+    .not('low_stock_threshold', 'is', null)
+    .limit(1000);
+
   const [
     { data: users },
     { data: payments, count: paymentsCount },
@@ -92,6 +104,8 @@ export default async function AdminPage({ searchParams }: { searchParams: Search
     { count: stockMovementsCount },
     { data: proExpiringUsers },
     { data: newProUsers },
+    { data: profilesForSms },
+    { data: products },
   ] = await Promise.all([
     usersReq,
     paymentsReq,
@@ -103,7 +117,21 @@ export default async function AdminPage({ searchParams }: { searchParams: Search
     supabase.from('stock_movements').select('id', { count: 'exact', head: true }),
     proExpiringReq,
     newProReq,
+    profilesForSmsReq,
+    productsReq,
   ]);
+
+  const lowStockProducts = (products ?? []).filter((p) => {
+    const qty = Number(p.quantity ?? 0);
+    const threshold = Number(p.low_stock_threshold ?? 0);
+    return threshold > 0 && qty <= threshold;
+  });
+  const lowStockUserIds = Array.from(new Set(lowStockProducts.map((p) => String(p.user_id))));
+  const { data: lowStockProfiles } =
+    lowStockUserIds.length > 0
+      ? await supabase.from('profiles').select('id, email, full_name').in('id', lowStockUserIds)
+      : { data: [] as { id: string; email: string | null; full_name: string | null }[] };
+  const profileById = new Map((lowStockProfiles ?? []).map((r) => [r.id, r]));
 
   const userCount = users?.length ?? 0;
   const paymentCount = paymentsCount ?? 0;
@@ -160,6 +188,10 @@ export default async function AdminPage({ searchParams }: { searchParams: Search
             {productsCount ?? 0} / {stockMovementsCount ?? 0}
           </p>
         </div>
+        <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-4">
+          <p className="text-sm text-slate-500 dark:text-slate-400">Users with low stock</p>
+          <p className="text-2xl font-semibold text-slate-900 dark:text-white">{lowStockUserIds.length}</p>
+        </div>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
@@ -202,6 +234,91 @@ export default async function AdminPage({ searchParams }: { searchParams: Search
                     <tr>
                       <td className="py-3 px-3 text-slate-500" colSpan={3}>
                         No Pro subscriptions expiring in the next 7 days.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden">
+          <div className="px-4 py-3 border-b border-slate-200 dark:border-slate-700 font-semibold text-slate-900 dark:text-white">
+            User contacts &amp; SMS (Termii)
+          </div>
+          <div className="p-4 space-y-4">
+            <p className="text-sm text-slate-600 dark:text-slate-400">
+              To send an SMS, go to <a href="/admin/sms" className="text-primary-600 dark:text-primary-400 underline font-medium">Send SMS</a>.
+            </p>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="bg-slate-50 dark:bg-slate-900/40 text-left">
+                    <th className="py-2 px-3">Email</th>
+                    <th className="py-2 px-3">Phone</th>
+                    <th className="py-2 px-3">Name</th>
+                    <th className="py-2 px-3">Plan</th>
+                    <th className="py-2 px-3">Subscription end</th>
+                    <th className="py-2 px-3">Joined</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {(profilesForSms ?? []).map((p) => (
+                    <tr key={p.id} className="border-t border-slate-100 dark:border-slate-700/60">
+                      <td className="py-2 px-3">{p.email ?? '—'}</td>
+                      <td className="py-2 px-3">{p.phone ? String(p.phone) : '—'}</td>
+                      <td className="py-2 px-3">{p.full_name ?? '—'}</td>
+                      <td className="py-2 px-3">{p.plan ?? '—'}</td>
+                      <td className="py-2 px-3">{p.subscription_end ? new Date(String(p.subscription_end)).toLocaleDateString() : '—'}</td>
+                      <td className="py-2 px-3">{p.created_at ? new Date(String(p.created_at)).toLocaleDateString() : '—'}</td>
+                    </tr>
+                  ))}
+                  {((profilesForSms ?? []).length === 0) && (
+                    <tr>
+                      <td className="py-3 px-3 text-slate-500" colSpan={6}>No profiles found.</td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden lg:col-span-2">
+          <div className="px-4 py-3 border-b border-slate-200 dark:border-slate-700 font-semibold text-slate-900 dark:text-white">
+            Low stock across users
+          </div>
+          <div className="p-4">
+            <p className="text-sm text-slate-600 dark:text-slate-400 mb-3">
+              Users who have at least one product with quantity ≤ their low-stock threshold. These users receive email and SMS alerts from the daily cron.
+            </p>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="bg-slate-50 dark:bg-slate-900/40 text-left">
+                    <th className="py-2 px-3">User (email)</th>
+                    <th className="py-2 px-3">Product</th>
+                    <th className="py-2 px-3">Quantity</th>
+                    <th className="py-2 px-3">Low-stock threshold</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {lowStockProducts.map((p) => {
+                    const profile = profileById.get(String(p.user_id));
+                    return (
+                      <tr key={p.id} className="border-t border-slate-100 dark:border-slate-700/60">
+                        <td className="py-2 px-3">{profile?.email ?? profile?.full_name ?? p.user_id}</td>
+                        <td className="py-2 px-3">{p.name ?? '—'}</td>
+                        <td className="py-2 px-3">{Number(p.quantity ?? 0)}</td>
+                        <td className="py-2 px-3">{Number(p.low_stock_threshold ?? 0)}</td>
+                      </tr>
+                    );
+                  })}
+                  {lowStockProducts.length === 0 && (
+                    <tr>
+                      <td className="py-3 px-3 text-slate-500" colSpan={4}>
+                        No low-stock products across any user.
                       </td>
                     </tr>
                   )}
