@@ -43,7 +43,6 @@ export async function POST(_req: NextRequest) {
   const body = {
     email,
     amount: PRO_AMOUNT_KOBO,
-    currency: PRO_CURRENCY,
     reference,
     callback_url: callbackUrl,
     metadata: { user_id: String(profileId) },
