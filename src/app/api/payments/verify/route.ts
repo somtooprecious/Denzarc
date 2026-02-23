@@ -22,10 +22,19 @@ export async function GET(req: NextRequest) {
   const res = await fetch(`https://api.paystack.co/transaction/verify/${encodeURIComponent(ref)}`, {
     headers: { Authorization: `Bearer ${PAYSTACK_SECRET}` },
   });
-  const data = await res.json();
+  const data = await res.json().catch(() => null);
 
-  if (!data.status || data.data?.status !== 'success') {
+  if (!res.ok || !data?.status) {
     return NextResponse.redirect(new URL('/pricing?error=verify_failed', req.url));
+  }
+
+  if (data.data?.status !== 'success') {
+    return NextResponse.redirect(new URL('/pricing?error=verify_failed', req.url));
+  }
+
+  const verifiedReference = String(data.data?.reference ?? ref);
+  if (verifiedReference !== ref) {
+    return NextResponse.redirect(new URL('/pricing?error=reference_mismatch', req.url));
   }
 
   const userId = data.data?.metadata?.user_id;
@@ -37,7 +46,7 @@ export async function GET(req: NextRequest) {
   const { data: payment } = await supabase
     .from('payments')
     .select('id, status, user_id, amount')
-    .eq('reference', ref)
+    .eq('reference', verifiedReference)
     .single();
 
   if (!payment) {
@@ -63,7 +72,10 @@ export async function GET(req: NextRequest) {
     return NextResponse.redirect(new URL('/dashboard?upgraded=pro&already=1', req.url));
   }
 
-  await supabase.from('payments').update({ status: 'success' }).eq('reference', ref);
+  await supabase
+    .from('payments')
+    .update({ status: 'success' })
+    .eq('reference', verifiedReference);
 
   const now = new Date();
   const end = new Date(now);
@@ -85,8 +97,8 @@ export async function GET(req: NextRequest) {
     await sendEmail({
       to: ADMIN_NOTIFICATION_EMAIL,
       subject: `New Pro subscription: ${customerEmail}`,
-      html: `<p>A user upgraded to Pro.</p><p><strong>User ID:</strong> ${userId}</p><p><strong>Email:</strong> ${customerEmail}</p><p><strong>Reference:</strong> ${ref}</p><p><strong>Subscription end:</strong> ${end.toISOString()}</p>`,
-      text: `A user upgraded to Pro. User ID: ${userId}. Email: ${customerEmail}. Reference: ${ref}. Subscription end: ${end.toISOString()}`,
+      html: `<p>A user upgraded to Pro.</p><p><strong>User ID:</strong> ${userId}</p><p><strong>Email:</strong> ${customerEmail}</p><p><strong>Reference:</strong> ${verifiedReference}</p><p><strong>Subscription end:</strong> ${end.toISOString()}</p>`,
+      text: `A user upgraded to Pro. User ID: ${userId}. Email: ${customerEmail}. Reference: ${verifiedReference}. Subscription end: ${end.toISOString()}`,
     });
   }
 
