@@ -93,6 +93,12 @@ export default async function AdminPage({ searchParams }: { searchParams: Search
     .not('low_stock_threshold', 'is', null)
     .limit(1000);
 
+  const successfulPaymentsReq = supabase
+    .from('payments')
+    .select('amount')
+    .eq('status', 'success')
+    .limit(5000);
+
   const [
     { data: users },
     { data: payments, count: paymentsCount },
@@ -106,6 +112,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Search
     { data: newProUsers },
     { data: profilesForSms },
     { data: products },
+    { data: successfulPayments },
   ] = await Promise.all([
     usersReq,
     paymentsReq,
@@ -119,6 +126,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Search
     newProReq,
     profilesForSmsReq,
     productsReq,
+    successfulPaymentsReq,
   ]);
 
   const lowStockProducts = (products ?? []).filter((p) => {
@@ -135,7 +143,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Search
 
   const userCount = users?.length ?? 0;
   const paymentCount = paymentsCount ?? 0;
-  const totalRevenue = (payments ?? []).reduce((sum, p) => sum + Number(p.amount || 0), 0);
+  const totalRevenue = (successfulPayments ?? []).reduce((sum, p) => sum + Number(p.amount || 0), 0);
   const expiringSoon = (proExpiringUsers ?? []).filter((u) => {
     const days = daysUntil(u.subscription_end);
     return days !== null && days >= 0 && days <= 7;
@@ -167,6 +175,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Search
         <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-4">
           <p className="text-sm text-slate-500 dark:text-slate-400">Revenue (payments)</p>
           <p className="text-2xl font-semibold text-slate-900 dark:text-white">{formatMoney(totalRevenue)}</p>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Successful only</p>
         </div>
         <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-4">
           <p className="text-sm text-slate-500 dark:text-slate-400">Invoices</p>
