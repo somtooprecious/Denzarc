@@ -1,5 +1,6 @@
 import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
 
+// Visitors always see the landing page (/) first; sign-in and sign-up are reached from there.
 const isPublicRoute = createRouteMatcher([
   '/',
   '/about',
@@ -8,6 +9,9 @@ const isPublicRoute = createRouteMatcher([
   '/sign-in(.*)',
   '/sign-up(.*)',
   '/pricing',
+  '/privacy-policy',
+  '/terms-of-service',
+  '/refund-policy',
   '/robots.txt',
   '/sitemap.xml',
   '/api/cron/notifications',
