@@ -154,14 +154,31 @@ export default function RootLayout({
                   <div className="space-y-3">
                     <div className="text-sm font-semibold text-slate-900 dark:text-white">Business</div>
                     <ul className="space-y-2 text-sm">
-                      <li>Pricing</li>
+                      <li>
+                        <a href="/pricing" className="hover:text-primary-600 dark:hover:text-primary-400 transition">
+                          Pricing
+                        </a>
+                      </li>
                       <li>
                         <a href="/support" className="hover:text-primary-600 dark:hover:text-primary-400 transition">
                           Support
                         </a>
                       </li>
-                      <li>Security & privacy</li>
-                      <li>Terms of service</li>
+                      <li>
+                        <a href="/privacy-policy" className="hover:text-primary-600 dark:hover:text-primary-400 transition">
+                          Privacy Policy
+                        </a>
+                      </li>
+                      <li>
+                        <a href="/terms-of-service" className="hover:text-primary-600 dark:hover:text-primary-400 transition">
+                          Terms of Service
+                        </a>
+                      </li>
+                      <li>
+                        <a href="/refund-policy" className="hover:text-primary-600 dark:hover:text-primary-400 transition">
+                          Refund Policy
+                        </a>
+                      </li>
                     </ul>
                   </div>
                   <div className="space-y-3">
