@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation';
 import { auth } from '@clerk/nextjs/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { isAdminUser } from '@/lib/admin';
+import { AdminVerifyPaymentForm } from '@/components/admin/AdminVerifyPaymentForm';
 
 function formatMoney(amount: number) {
   return `₦${Number(amount || 0).toLocaleString()}`;
@@ -68,7 +69,10 @@ export default async function AdminPage({ searchParams }: { searchParams: Search
     .select('id, user_id, amount, reference, status, created_at', { count: 'exact' })
     .order('created_at', { ascending: false })
     .limit(25);
-  if (paymentsStatus) paymentsReq = paymentsReq.eq('status', paymentsStatus);
+  const statusFilter = paymentsStatus ? String(paymentsStatus).toLowerCase() : '';
+  if (statusFilter && ['pending', 'success', 'failed'].includes(statusFilter)) {
+    paymentsReq = paymentsReq.eq('status', statusFilter);
+  }
   if (paymentsFrom) paymentsReq = paymentsReq.gte('created_at', paymentsFrom);
   if (paymentsTo) paymentsReq = paymentsReq.lte('created_at', paymentsTo);
 
@@ -341,7 +345,13 @@ export default async function AdminPage({ searchParams }: { searchParams: Search
           <div className="px-4 py-3 border-b border-slate-200 dark:border-slate-700 font-semibold text-slate-900 dark:text-white">
             Payments
           </div>
-          <form className="px-4 py-3 border-b border-slate-200 dark:border-slate-700 grid gap-2 sm:grid-cols-4">
+          <div className="px-4 py-3 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/40">
+            <p className="text-xs text-slate-600 dark:text-slate-400 mb-2">
+              Payment completed but not showing as Success or in Revenue? Re-verify with Paystack (paste reference below).
+            </p>
+            <AdminVerifyPaymentForm />
+          </div>
+          <form method="get" action="/admin" className="px-4 py-3 border-b border-slate-200 dark:border-slate-700 grid gap-2 sm:grid-cols-4">
             <input
               name="payments_from"
               type="date"
