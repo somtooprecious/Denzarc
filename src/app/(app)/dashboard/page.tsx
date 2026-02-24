@@ -4,8 +4,14 @@ import { createAdminClient } from '@/lib/supabase/admin';
 import { getSupabaseProfileId } from '@/lib/auth';
 import { hasProfitDashboard, isPro } from '@/lib/plan';
 import { DashboardStats } from '@/components/dashboard/DashboardStats';
+import { UpgradeSuccessRefresh } from '@/components/dashboard/UpgradeSuccessRefresh';
+import { SyncSubscriptionButton } from '@/components/dashboard/SyncSubscriptionButton';
 
-export default async function DashboardPage() {
+export default async function DashboardPage({
+  searchParams = {},
+}: {
+  searchParams?: Record<string, string | string[] | undefined>;
+}) {
   const profileId = await getSupabaseProfileId();
   if (!profileId) redirect('/sign-in');
   const supabase = createAdminClient();
@@ -32,6 +38,7 @@ export default async function DashboardPage() {
 
   return (
     <div className="space-y-8">
+      <UpgradeSuccessRefresh searchParams={searchParams ?? null} />
       <div>
         <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
           Dashboard
@@ -45,6 +52,8 @@ export default async function DashboardPage() {
             <>
               {' '}
               · <Link href="/pricing" className="text-primary-600 hover:underline">Upgrade to Pro</Link>
+              {' · '}
+              <SyncSubscriptionButton />
             </>
           )}
         </p>

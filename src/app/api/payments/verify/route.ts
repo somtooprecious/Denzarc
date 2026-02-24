@@ -80,12 +80,22 @@ export async function GET(req: NextRequest) {
   const now = new Date();
   const end = new Date(now);
   end.setMonth(end.getMonth() + 1);
-  await supabase.from('profiles').update({
+  const { error: updateError } = await supabase.from('profiles').update({
     plan: 'pro',
     subscription_start: now.toISOString(),
     subscription_end: end.toISOString(),
     updated_at: now.toISOString(),
   }).eq('id', userId);
+
+  if (updateError) {
+    console.error('[Paystack verify] Profile update failed', {
+      userId,
+      reference: verifiedReference,
+      error: updateError.message,
+      code: updateError.code,
+    });
+    return NextResponse.redirect(new URL('/pricing?error=update_failed', req.url));
+  }
 
   if (ADMIN_NOTIFICATION_EMAIL) {
     const { data: profile } = await supabase
