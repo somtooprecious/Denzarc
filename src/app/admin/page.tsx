@@ -3,6 +3,7 @@ import { auth } from '@clerk/nextjs/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { isAdminUser } from '@/lib/admin';
 import { AdminVerifyPaymentForm } from '@/components/admin/AdminVerifyPaymentForm';
+import { SyncPaidToProButton } from '@/components/admin/SyncPaidToProButton';
 
 function formatMoney(amount: number) {
   return `₦${Number(amount || 0).toLocaleString()}`;
@@ -345,11 +346,15 @@ export default async function AdminPage({ searchParams }: { searchParams: Search
           <div className="px-4 py-3 border-b border-slate-200 dark:border-slate-700 font-semibold text-slate-900 dark:text-white">
             Payments
           </div>
-          <div className="px-4 py-3 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/40">
-            <p className="text-xs text-slate-600 dark:text-slate-400 mb-2">
+          <div className="px-4 py-3 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/40 space-y-3">
+            <p className="text-xs text-slate-600 dark:text-slate-400">
               Payment completed but not showing as Success or in Revenue? Re-verify with Paystack (paste reference below).
             </p>
             <AdminVerifyPaymentForm />
+            <p className="text-xs text-slate-600 dark:text-slate-400 pt-2 border-t border-slate-200 dark:border-slate-700">
+              Accounts that already have a successful payment but are still on Free:
+            </p>
+            <SyncPaidToProButton />
           </div>
           <form method="get" action="/admin" className="px-4 py-3 border-b border-slate-200 dark:border-slate-700 grid gap-2 sm:grid-cols-4">
             <input

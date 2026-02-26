@@ -1,10 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createAdminClient } from '@/lib/supabase/admin';
-import { sendEmail } from '@/lib/email';
+import { verifyAndGrantPro } from '@/lib/paystack/grantPro';
 
 const PAYSTACK_SECRET = process.env.PAYSTACK_SECRET_KEY;
-const PRO_CURRENCY = process.env.PRO_PLAN_CURRENCY ?? 'NGN';
-const ADMIN_NOTIFICATION_EMAIL = process.env.ADMIN_NOTIFICATION_EMAIL ?? process.env.NEXT_PUBLIC_SUPPORT_EMAIL;
 
 export async function GET(req: NextRequest) {
   const ref =
@@ -14,103 +11,14 @@ export async function GET(req: NextRequest) {
   if (!ref) {
     return NextResponse.redirect(new URL('/pricing?error=missing_ref', req.url));
   }
-
   if (!PAYSTACK_SECRET) {
     return NextResponse.redirect(new URL('/pricing?error=config', req.url));
   }
 
-  const res = await fetch(`https://api.paystack.co/transaction/verify/${encodeURIComponent(ref)}`, {
-    headers: { Authorization: `Bearer ${PAYSTACK_SECRET}` },
-  });
-  const data = await res.json().catch(() => null);
+  const result = await verifyAndGrantPro(ref, PAYSTACK_SECRET);
 
-  if (!res.ok || !data?.status) {
-    return NextResponse.redirect(new URL('/pricing?error=verify_failed', req.url));
+  if (result.ok) {
+    return NextResponse.redirect(new URL('/dashboard?upgraded=pro', req.url));
   }
-
-  if (data.data?.status !== 'success') {
-    return NextResponse.redirect(new URL('/pricing?error=verify_failed', req.url));
-  }
-
-  const verifiedReference = String(data.data?.reference ?? ref);
-  if (verifiedReference !== ref) {
-    return NextResponse.redirect(new URL('/pricing?error=reference_mismatch', req.url));
-  }
-
-  const userId = data.data?.metadata?.user_id;
-  if (!userId) {
-    return NextResponse.redirect(new URL('/pricing?error=metadata', req.url));
-  }
-
-  const supabase = createAdminClient();
-  const { data: payment } = await supabase
-    .from('payments')
-    .select('id, status, user_id, amount')
-    .eq('reference', verifiedReference)
-    .single();
-
-  if (!payment) {
-    return NextResponse.redirect(new URL('/pricing?error=payment_not_found', req.url));
-  }
-
-  if (payment.user_id !== userId) {
-    return NextResponse.redirect(new URL('/pricing?error=user_mismatch', req.url));
-  }
-
-  const paidAmountKobo = Number(data.data?.amount ?? 0);
-  const expectedAmountKobo = Math.round(Number(payment.amount ?? 0) * 100);
-  if (paidAmountKobo !== expectedAmountKobo) {
-    return NextResponse.redirect(new URL('/pricing?error=amount_mismatch', req.url));
-  }
-
-  const paidCurrency = String(data.data?.currency ?? '').toUpperCase();
-  if (paidCurrency && paidCurrency !== PRO_CURRENCY.toUpperCase()) {
-    return NextResponse.redirect(new URL('/pricing?error=currency_mismatch', req.url));
-  }
-
-  if (payment.status === 'success') {
-    return NextResponse.redirect(new URL('/dashboard?upgraded=pro&already=1', req.url));
-  }
-
-  await supabase
-    .from('payments')
-    .update({ status: 'success' })
-    .eq('reference', verifiedReference);
-
-  const now = new Date();
-  const end = new Date(now);
-  end.setMonth(end.getMonth() + 1);
-  const { error: updateError } = await supabase.from('profiles').update({
-    plan: 'pro',
-    subscription_start: now.toISOString(),
-    subscription_end: end.toISOString(),
-    updated_at: now.toISOString(),
-  }).eq('id', userId);
-
-  if (updateError) {
-    console.error('[Paystack verify] Profile update failed', {
-      userId,
-      reference: verifiedReference,
-      error: updateError.message,
-      code: updateError.code,
-    });
-    return NextResponse.redirect(new URL('/pricing?error=update_failed', req.url));
-  }
-
-  if (ADMIN_NOTIFICATION_EMAIL) {
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('email')
-      .eq('id', userId)
-      .single();
-    const customerEmail = profile?.email ?? 'Unknown';
-    await sendEmail({
-      to: ADMIN_NOTIFICATION_EMAIL,
-      subject: `New Pro subscription: ${customerEmail}`,
-      html: `<p>A user upgraded to Pro.</p><p><strong>User ID:</strong> ${userId}</p><p><strong>Email:</strong> ${customerEmail}</p><p><strong>Reference:</strong> ${verifiedReference}</p><p><strong>Subscription end:</strong> ${end.toISOString()}</p>`,
-      text: `A user upgraded to Pro. User ID: ${userId}. Email: ${customerEmail}. Reference: ${verifiedReference}. Subscription end: ${end.toISOString()}`,
-    });
-  }
-
-  return NextResponse.redirect(new URL('/dashboard?upgraded=pro', req.url));
+  return NextResponse.redirect(new URL(`/pricing?error=${result.error}`, req.url));
 }

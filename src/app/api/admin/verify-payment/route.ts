@@ -4,7 +4,18 @@ import { createAdminClient } from '@/lib/supabase/admin';
 import { isAdminUser } from '@/lib/admin';
 
 const PAYSTACK_SECRET = process.env.PAYSTACK_SECRET_KEY;
-const PRO_CURRENCY = process.env.PRO_PLAN_CURRENCY ?? 'NGN';
+const PRO_CURRENCY = (process.env.PRO_PLAN_CURRENCY ?? 'NGN').toString().trim().toUpperCase();
+
+function currencyMatches(paid: string, expected: string): boolean {
+  const p = String(paid ?? '').replace(/\s/g, '').toUpperCase();
+  const e = String(expected ?? '').replace(/\s/g, '').toUpperCase();
+  if (!p) return true;
+  const ngnVariants = ['NGN', 'NGR', 'NAIRA', '566'];
+  const isNgn = (c: string) =>
+    ngnVariants.includes(c) || c.includes('NGN') || c.includes('NAIRA') || c.includes('NGR');
+  if (isNgn(e) && isNgn(p)) return true;
+  return p === e;
+}
 
 /**
  * POST /api/admin/verify-payment
@@ -70,8 +81,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Amount mismatch' }, { status: 400 });
   }
 
-  const paidCurrency = String(data.data?.currency ?? '').toUpperCase();
-  if (paidCurrency && paidCurrency !== PRO_CURRENCY.toUpperCase()) {
+  const paidCurrency = String(data.data?.currency ?? '').trim().toUpperCase();
+  if (!currencyMatches(paidCurrency, PRO_CURRENCY)) {
     return NextResponse.json({ error: 'Currency mismatch' }, { status: 400 });
   }
 
