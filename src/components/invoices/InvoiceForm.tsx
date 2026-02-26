@@ -315,8 +315,8 @@ export function InvoiceForm({ profile, customers = [] }: { profile: Profile | nu
                   <td className="py-2 px-2">
                     <input
                       type="number"
-                      min={0.001}
-                      step={0.01}
+                      min={0}
+                      step="any"
                       value={item.quantity}
                       onChange={(e) => updateItem(item.id, { quantity: parseFloat(e.target.value) || 0 })}
                       className="w-full px-3 py-2 rounded border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white text-right"
