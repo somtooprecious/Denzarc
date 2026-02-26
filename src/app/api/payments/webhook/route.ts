@@ -43,10 +43,11 @@ export async function POST(req: NextRequest) {
   }
 
   const result = await verifyAndGrantPro(reference.trim(), PAYSTACK_SECRET);
-  if (result.ok) {
+  if ('ok' in result && result.ok) {
     console.log('[Paystack webhook] Granted Pro for reference', reference);
   } else {
-    console.warn('[Paystack webhook] grantPro failed', reference, result.error);
+    const err = 'error' in result ? result.error : 'unknown';
+    console.warn('[Paystack webhook] grantPro failed', reference, err);
   }
 
   return NextResponse.json({ received: true }, { status: 200 });

@@ -17,8 +17,9 @@ export async function GET(req: NextRequest) {
 
   const result = await verifyAndGrantPro(ref, PAYSTACK_SECRET);
 
-  if (result.ok) {
+  if ('ok' in result && result.ok) {
     return NextResponse.redirect(new URL('/dashboard?upgraded=pro', req.url));
   }
-  return NextResponse.redirect(new URL(`/pricing?error=${result.error}`, req.url));
+  const errorCode = 'error' in result ? result.error : 'verify_failed';
+  return NextResponse.redirect(new URL(`/pricing?error=${errorCode}`, req.url));
 }
