@@ -3,11 +3,16 @@ import {
   Text,
   View,
   StyleSheet,
+  Image,
 } from '@react-pdf/renderer';
 
 const styles = StyleSheet.create({
   page: { padding: 40, fontSize: 10, fontFamily: 'Helvetica' },
   header: { marginBottom: 24 },
+  headerRow: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16 },
+  logoWrap: { width: 80, height: 48 },
+  logo: { width: 80, height: 48, objectFit: 'contain' },
+  headerText: { flex: 1 },
   title: { fontSize: 18, fontWeight: 'bold', marginBottom: 4 },
   meta: { fontSize: 9, color: '#64748b', marginBottom: 2 },
   section: { marginBottom: 16 },
@@ -58,20 +63,31 @@ interface InvoicePDFProps {
 
 export function InvoicePDF({ invoice, showBranding = true }: InvoicePDFProps) {
   const typeLabel = invoice.type === 'receipt' ? 'Receipt' : 'Invoice';
+  const logoUrl = invoice.business_logo_url?.trim() || null;
+
   return (
     <Page size="A4" style={styles.page}>
       <View style={styles.header}>
-        <Text style={styles.title}>{invoice.business_name || 'Business'}</Text>
-        {invoice.business_address ? (
-          <Text style={styles.meta}>{invoice.business_address}</Text>
-        ) : null}
-        <Text style={styles.meta}>
-          {typeLabel} #{invoice.invoice_number} · {invoice.status}
-        </Text>
-        <Text style={styles.meta}>
-          Issue date: {new Date(invoice.issue_date).toLocaleDateString()}
-          {invoice.due_date ? ` · Due: ${new Date(invoice.due_date).toLocaleDateString()}` : ''}
-        </Text>
+        <View style={styles.headerRow}>
+          {logoUrl ? (
+            <View style={styles.logoWrap}>
+              <Image src={logoUrl} style={styles.logo} />
+            </View>
+          ) : null}
+          <View style={styles.headerText}>
+            <Text style={styles.title}>{invoice.business_name || 'Business'}</Text>
+            {invoice.business_address ? (
+              <Text style={styles.meta}>{invoice.business_address}</Text>
+            ) : null}
+            <Text style={styles.meta}>
+              {typeLabel} #{invoice.invoice_number} · {invoice.status}
+            </Text>
+            <Text style={styles.meta}>
+              Issue date: {new Date(invoice.issue_date).toLocaleDateString()}
+              {invoice.due_date ? ` · Due: ${new Date(invoice.due_date).toLocaleDateString()}` : ''}
+            </Text>
+          </View>
+        </View>
       </View>
 
         <View style={styles.section}>

@@ -33,17 +33,26 @@ export async function GET(
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('plan')
+    .select('plan, business_logo_url')
     .eq('id', profileId)
     .single();
   const plan = (profile?.plan as 'free' | 'pro') ?? 'free';
   const showBranding = !canRemoveBranding(plan);
 
+  // Use invoice logo if set, otherwise fall back to profile logo (so existing invoices show logo too)
+  const invoiceForPdf = {
+    ...invoice,
+    business_logo_url:
+      (invoice.business_logo_url as string)?.trim() ||
+      (profile?.business_logo_url as string)?.trim() ||
+      null,
+  };
+
   try {
     const doc = (
       <Document>
         <InvoicePDF
-          invoice={invoice as Parameters<typeof InvoicePDF>[0]['invoice']}
+          invoice={invoiceForPdf as Parameters<typeof InvoicePDF>[0]['invoice']}
           showBranding={showBranding}
         />
       </Document>

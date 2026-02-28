@@ -93,6 +93,7 @@ export function InvoiceForm({ profile, customers = [] }: { profile: Profile | nu
         customer_address: customerAddress || null,
         business_name: businessName || null,
         business_address: businessAddress || null,
+        business_logo_url: (profile?.business_logo_url as string)?.trim() || null,
         issue_date: issueDate,
         due_date: dueDate || null,
         items: items.map((i) => ({
