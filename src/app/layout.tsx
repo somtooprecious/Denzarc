@@ -109,9 +109,7 @@ export default function RootLayout({
   return (
     <AuthProvider>
       <html lang="en" suppressHydrationWarning>
-        <head>
-          <meta httpEquiv="Content-Security-Policy" content="upgrade-insecure-requests" />
-        </head>
+        <head />
         <body className="antialiased min-h-screen">
           <script
             type="application/ld+json"
