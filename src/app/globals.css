@@ -27,3 +27,9 @@ body {
   #invoice-print { border: none; box-shadow: none; }
   body { background: #fff; }
 }
+
+/* Hide Clerk "Secured by Clerk" branding (footer at bottom of account/profile) */
+.cl-footer,
+.cl-footerAction {
+  display: none !important;
+}

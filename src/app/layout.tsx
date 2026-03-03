@@ -14,7 +14,19 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
     return <>{children}</>;
   }
 
-  return <ClerkProvider>{children}</ClerkProvider>;
+  return (
+    <ClerkProvider
+      appearance={{
+        elements: {
+          // Hide "Secured by Clerk" branding footer in account/profile views
+          footer: 'hidden',
+          footerAction: 'hidden',
+        },
+      }}
+    >
+      {children}
+    </ClerkProvider>
+  );
 }
 
 export const metadata: Metadata = {
