@@ -17,6 +17,7 @@ const allLinks = [
   { href: '/expenses', label: 'Expenses', pro: false },
   { href: '/profit', label: 'Profit', pro: true },
   { href: '/customers', label: 'Customers', pro: true },
+  { href: '/products', label: 'Products', pro: true },
   { href: '/inventory', label: 'Inventory', pro: true },
   { href: '/notifications', label: 'Notifications', pro: true },
   { href: '/ai-insights', label: 'AI Insights', pro: true },

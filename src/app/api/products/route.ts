@@ -6,6 +6,7 @@ import { z } from 'zod';
 
 const createProductSchema = z.object({
   name: z.string().min(1, 'Name required'),
+  description: z.string().optional().nullable().or(z.literal('')),
   sku: z.string().optional().nullable(),
   quantity: z.coerce.number().min(0).default(0),
   unit_price: z.coerce.number().min(0).default(0),
@@ -40,6 +41,7 @@ export async function POST(req: NextRequest) {
   const { data, error } = await supabase.from('products').insert({
     user_id: profileId,
     name: parsed.data.name,
+    description: (parsed.data.description as string)?.trim() || null,
     sku: parsed.data.sku || null,
     quantity: parsed.data.quantity,
     unit_price: parsed.data.unit_price,

@@ -30,3 +30,7 @@ export function hasInventory(plan: Plan | null | undefined): boolean {
 export function hasAIInsights(plan: Plan | null | undefined): boolean {
   return isPro(plan);
 }
+
+export function hasProducts(plan: Plan | null | undefined): boolean {
+  return isPro(plan);
+}

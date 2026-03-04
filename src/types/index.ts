@@ -91,6 +91,7 @@ export interface Product {
   id: string;
   user_id: string;
   name: string;
+  description: string | null;
   sku: string | null;
   quantity: number;
   unit_price: number;
