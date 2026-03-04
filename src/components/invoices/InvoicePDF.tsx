@@ -6,9 +6,10 @@ import {
   Image,
 } from '@react-pdf/renderer';
 
-// POS receipt size: 57mm width (~162pt), height long so content flows (auto effect)
-const RECEIPT_WIDTH_PT = 162; // 57mm in points (57 * 2.83465)
-const RECEIPT_HEIGHT_PT = 2000; // tall single strip; overflow goes to next page
+// POS receipt size: 57mm width, 200mm height (content flows to next page if longer)
+const MM_TO_PT = 2.83465;
+const RECEIPT_WIDTH_PT = Math.round(57 * MM_TO_PT);   // 57mm
+const RECEIPT_HEIGHT_PT = Math.round(200 * MM_TO_PT); // 200mm (~567pt)
 
 const styles = StyleSheet.create({
   page: { padding: 8, fontSize: 7, fontFamily: 'Helvetica' },
