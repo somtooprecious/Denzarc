@@ -6,32 +6,32 @@ import {
   Image,
 } from '@react-pdf/renderer';
 
+// POS receipt size: 57mm width (~162pt), height long so content flows (auto effect)
+const RECEIPT_WIDTH_PT = 162; // 57mm in points (57 * 2.83465)
+const RECEIPT_HEIGHT_PT = 2000; // tall single strip; overflow goes to next page
+
 const styles = StyleSheet.create({
-  page: { padding: 40, fontSize: 10, fontFamily: 'Helvetica' },
-  header: { marginBottom: 24 },
-  headerRow: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16 },
-  logoWrap: { width: 80, height: 48 },
-  logo: { width: 80, height: 48, objectFit: 'contain' },
+  page: { padding: 8, fontSize: 7, fontFamily: 'Helvetica' },
+  header: { marginBottom: 8 },
+  headerRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 6 },
+  logoWrap: { width: 36, height: 22 },
+  logo: { width: 36, height: 22, objectFit: 'contain' },
   headerText: { flex: 1 },
-  title: { fontSize: 18, fontWeight: 'bold', marginBottom: 4 },
-  meta: { fontSize: 9, color: '#64748b', marginBottom: 2 },
-  section: { marginBottom: 16 },
-  sectionTitle: { fontSize: 11, fontWeight: 'bold', marginBottom: 6 },
-  row: { flexDirection: 'row', marginBottom: 4 },
-  label: { width: 100, color: '#64748b' },
-  value: { flex: 1 },
-  table: { marginTop: 8 },
-  tableHeader: { flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: '#e2e8f0', paddingVertical: 6, fontWeight: 'bold' },
-  tableRow: { flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: '#f1f5f9', paddingVertical: 6 },
-  colDesc: { flex: 2, paddingRight: 8 },
-  colQty: { width: 50, textAlign: 'right', paddingRight: 8 },
-  colPrice: { width: 70, textAlign: 'right', paddingRight: 8 },
-  colTotal: { width: 70, textAlign: 'right' },
-  totals: { marginTop: 16, alignItems: 'flex-end', width: 200, marginLeft: 'auto' },
-  totalRow: { flexDirection: 'row', justifyContent: 'space-between', width: '100%', marginBottom: 4 },
-  totalLabel: { color: '#64748b' },
-  totalValue: { fontWeight: 'bold' },
-  footer: { marginTop: 32, paddingTop: 16, borderTopWidth: 1, borderTopColor: '#e2e8f0', fontSize: 9, color: '#94a3b8', textAlign: 'center' },
+  title: { fontSize: 10, fontWeight: 'bold', marginBottom: 2 },
+  meta: { fontSize: 6, color: '#64748b', marginBottom: 1 },
+  section: { marginBottom: 6 },
+  sectionTitle: { fontSize: 7, fontWeight: 'bold', marginBottom: 3 },
+  tableHeader: { flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: '#e2e8f0', paddingVertical: 3, fontWeight: 'bold', fontSize: 6 },
+  tableRow: { flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: '#f1f5f9', paddingVertical: 3, fontSize: 6 },
+  colDesc: { flex: 1, paddingRight: 3, maxWidth: 58 },
+  colQty: { width: 16, textAlign: 'right', paddingRight: 3 },
+  colPrice: { width: 28, textAlign: 'right', paddingRight: 3 },
+  colTotal: { width: 30, textAlign: 'right' },
+  totals: { marginTop: 8, width: '100%' },
+  totalRow: { flexDirection: 'row', justifyContent: 'space-between', width: '100%', marginBottom: 2 },
+  totalLabel: { color: '#64748b', fontSize: 6 },
+  totalValue: { fontWeight: 'bold', fontSize: 7 },
+  footer: { marginTop: 12, paddingTop: 6, borderTopWidth: 1, borderTopColor: '#e2e8f0', fontSize: 5, color: '#94a3b8', textAlign: 'center' },
 });
 
 interface InvoicePDFProps {
@@ -66,7 +66,7 @@ export function InvoicePDF({ invoice, showBranding = true }: InvoicePDFProps) {
   const logoUrl = invoice.business_logo_url?.trim() || null;
 
   return (
-    <Page size="A4" style={styles.page}>
+    <Page size={[RECEIPT_WIDTH_PT, RECEIPT_HEIGHT_PT]} style={styles.page}>
       <View style={styles.header}>
         <View style={styles.headerRow}>
           {logoUrl ? (
@@ -140,7 +140,7 @@ export function InvoicePDF({ invoice, showBranding = true }: InvoicePDFProps) {
               </View>
             );
           })()}
-          <View style={[styles.totalRow, { marginTop: 8, paddingTop: 8, borderTopWidth: 1, borderTopColor: '#e2e8f0' }]}>
+          <View style={[styles.totalRow, { marginTop: 6, paddingTop: 6, borderTopWidth: 1, borderTopColor: '#e2e8f0' }]}>
             <Text style={styles.totalLabel}>Total</Text>
             <Text style={styles.totalValue}>₦{Number(invoice.total).toLocaleString()}</Text>
           </View>
@@ -153,7 +153,7 @@ export function InvoicePDF({ invoice, showBranding = true }: InvoicePDFProps) {
         </View>
 
         {invoice.notes ? (
-          <View style={[styles.section, { marginTop: 24 }]}>
+          <View style={[styles.section, { marginTop: 8 }]}>
             <Text style={styles.sectionTitle}>Notes</Text>
             <Text>{invoice.notes}</Text>
           </View>
