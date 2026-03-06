@@ -5,10 +5,15 @@ import type { Profile } from '@/types';
 
 /**
  * Get the current Clerk user id, or null if not signed in.
+ * Catches Clerk errors (e.g. bad config, domain) so the app redirects to sign-in instead of crashing.
  */
 export async function getClerkUserId(): Promise<string | null> {
-  const { userId } = await auth();
-  return userId;
+  try {
+    const { userId } = await auth();
+    return userId;
+  } catch {
+    return null;
+  }
 }
 
 /**
@@ -30,7 +35,15 @@ export async function getSupabaseProfileId(): Promise<string | null> {
   if (existing?.id) return existing.id;
 
   // First sign-in: create profile. We need Clerk user email/name from auth().
-  const { userId, sessionClaims } = await auth();
+  let userId: string | null = null;
+  let sessionClaims: Record<string, unknown> | undefined;
+  try {
+    const a = await auth();
+    userId = a.userId;
+    sessionClaims = a.sessionClaims as Record<string, unknown> | undefined;
+  } catch {
+    return null;
+  }
   if (!userId) return null;
   const email = (sessionClaims?.email as string) ?? '';
   const fullName = (sessionClaims?.full_name as string) ?? (sessionClaims?.name as string) ?? null;

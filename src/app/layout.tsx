@@ -7,7 +7,9 @@ import './globals.css';
 import { getAppUrl } from '@/lib/url';
 
 const baseUrl = getAppUrl();
-const hasClerkPublishableKey = Boolean(process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY);
+// Read at module load so Clerk always gets the key at runtime (avoids build-time-only inlining).
+const clerkPublishableKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY ?? '';
+const hasClerkPublishableKey = Boolean(clerkPublishableKey);
 
 function AuthProvider({ children }: { children: React.ReactNode }) {
   if (!hasClerkPublishableKey) {
@@ -16,6 +18,7 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <ClerkProvider
+      publishableKey={clerkPublishableKey}
       appearance={{
         elements: {
           // Hide "Secured by Clerk" branding footer in account/profile views

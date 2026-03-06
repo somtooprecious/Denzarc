@@ -1,4 +1,5 @@
 import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
+import { NextResponse } from 'next/server';
 
 // Visitors always see the landing page (/) first; sign-in and sign-up are reached from there.
 const isPublicRoute = createRouteMatcher([
@@ -20,8 +21,12 @@ const isPublicRoute = createRouteMatcher([
 ]);
 
 export default clerkMiddleware(async (auth, request) => {
-  if (!isPublicRoute(request)) {
+  if (isPublicRoute(request)) return;
+  try {
     await auth.protect();
+  } catch {
+    const signInUrl = new URL('/sign-in', request.url);
+    return NextResponse.redirect(signInUrl);
   }
 });
 
