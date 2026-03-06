@@ -12,6 +12,11 @@ export function ensureHttps(url: string): string {
 }
 
 export function getAppUrl(): string {
-  const raw = process.env.NEXT_PUBLIC_APP_URL || 'https://denzarc.com';
-  return ensureHttps(raw);
+  try {
+    const raw = process.env.NEXT_PUBLIC_APP_URL || 'https://denzarc.com';
+    const url = ensureHttps(String(raw || '').trim() || 'https://denzarc.com');
+    return url && url.startsWith('http') ? url : 'https://denzarc.com';
+  } catch {
+    return 'https://denzarc.com';
+  }
 }

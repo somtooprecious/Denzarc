@@ -1,6 +1,8 @@
 import { SignUp } from '@clerk/nextjs';
 import Link from 'next/link';
 
+export const dynamic = 'force-dynamic';
+
 export default function SignUpPage() {
   const hasClerkPublishableKey = Boolean(process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY);
 
