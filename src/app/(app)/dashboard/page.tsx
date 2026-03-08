@@ -55,7 +55,7 @@ export default async function DashboardPage({
               {' · '}
               <SyncSubscriptionButton />
               <span className="block text-xs text-slate-500 dark:text-slate-400 mt-1">
-                Set Pro in Supabase? Edit the <strong>profiles</strong> row with ID <code className="bg-slate-200 dark:bg-slate-700 px-1 rounded">{profileId}</code>.
+                ID: <code className="bg-slate-200 dark:bg-slate-700 px-1 rounded">{profileId}</code>
               </span>
             </>
           )}
