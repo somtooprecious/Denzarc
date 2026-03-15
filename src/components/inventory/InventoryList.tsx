@@ -14,27 +14,19 @@ interface Product {
   low_stock_threshold: number;
 }
 
-interface StockMovement {
-  id: string;
-  product_id: string;
-  type: string;
-  quantity: number;
-  notes: string | null;
-  created_at: string;
-}
-
 function ProductRow({ product: p, onUpdate }: { product: Product; onUpdate: (p: Product) => void }) {
   const [stockQty, setStockQty] = useState('');
   const [stockType, setStockType] = useState<'in' | 'out'>('in');
   const [stockNote, setStockNote] = useState('');
   const [loading, setLoading] = useState(false);
   const [showStock, setShowStock] = useState(false);
-  const [showRecordNote, setShowRecordNote] = useState(false);
-  const [movements, setMovements] = useState<StockMovement[]>([]);
-  const [movementsLoading, setMovementsLoading] = useState(false);
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [editNoteValue, setEditNoteValue] = useState('');
-  const [savingNoteId, setSavingNoteId] = useState<string | null>(null);
+  const [editingRow, setEditingRow] = useState(false);
+  const [editName, setEditName] = useState(p.name);
+  const [editSku, setEditSku] = useState(p.sku ?? '');
+  const [editQuantity, setEditQuantity] = useState(p.quantity);
+  const [editUnitPrice, setEditUnitPrice] = useState(p.unit_price);
+  const [editLowStock, setEditLowStock] = useState(p.low_stock_threshold);
+  const [savingRow, setSavingRow] = useState(false);
 
   async function handleStock(e: React.FormEvent) {
     e.preventDefault();
@@ -62,122 +54,114 @@ function ProductRow({ product: p, onUpdate }: { product: Product; onUpdate: (p: 
     }
   }
 
-  async function loadMovements() {
-    setMovementsLoading(true);
-    try {
-      const res = await fetch(`/api/stock?product_id=${encodeURIComponent(p.id)}`);
-      const data = await res.json();
-      if (res.ok) setMovements(Array.isArray(data) ? data : []);
-    } finally {
-      setMovementsLoading(false);
-    }
+  function startEdit() {
+    setEditName(p.name);
+    setEditSku(p.sku ?? '');
+    setEditQuantity(p.quantity);
+    setEditUnitPrice(p.unit_price);
+    setEditLowStock(p.low_stock_threshold);
+    setEditingRow(true);
   }
 
-  function toggleRecordNote() {
-    if (!showRecordNote) loadMovements();
-    setShowRecordNote((v) => !v);
-  }
-
-  async function saveNote(movementId: string) {
-    setSavingNoteId(movementId);
+  async function saveRow() {
+    if (!editName.trim()) { toast.error('Name required'); return; }
+    setSavingRow(true);
     try {
-      const res = await fetch(`/api/stock/${movementId}`, {
-        method: 'PATCH',
+      const res = await fetch(`/api/products/${p.id}`, {
+        method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ notes: editNoteValue.trim() || null }),
+        body: JSON.stringify({
+          name: editName.trim(),
+          sku: editSku.trim() || null,
+          quantity: editQuantity,
+          unit_price: editUnitPrice,
+          low_stock_threshold: editLowStock,
+        }),
       });
-      if (!res.ok) throw new Error('Failed to save');
-      setMovements((prev) => prev.map((m) => (m.id === movementId ? { ...m, notes: editNoteValue.trim() || null } : m)));
-      setEditingId(null);
-      setEditNoteValue('');
-      toast.success('Note saved');
-    } catch {
-      toast.error('Failed to save note');
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? 'Failed to save');
+      onUpdate(data);
+      setEditingRow(false);
+      toast.success('Saved');
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Failed to save');
     } finally {
-      setSavingNoteId(null);
+      setSavingRow(false);
     }
   }
+
+  const inputClass = 'w-full max-w-full px-2 py-1 text-xs rounded border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white';
 
   return (
-    <>
-      <tr className="border-b border-slate-100 dark:border-slate-700/50">
-        <td className="py-3 px-4 font-medium text-slate-900 dark:text-white">{p.name}</td>
-        <td className="py-3 px-4 text-slate-600 dark:text-slate-400">{p.sku ?? '—'}</td>
-        <td className="py-3 px-4 text-right text-slate-900 dark:text-white">{p.quantity}</td>
-        <td className="py-3 px-4 text-right text-slate-600 dark:text-slate-400">₦{Number(p.unit_price).toLocaleString()}</td>
-        <td className="py-3 px-4">
-          {p.quantity <= p.low_stock_threshold ? (
-            <span className="text-amber-600 dark:text-amber-400 text-xs font-medium">Low stock</span>
+    <tr className="border-b border-slate-100 dark:border-slate-700/50">
+      <td className="py-3 px-4">
+        {editingRow ? (
+          <input type="text" value={editName} onChange={(e) => setEditName(e.target.value)} className={inputClass} placeholder="Name" />
+        ) : (
+          <span className="font-medium text-slate-900 dark:text-white">{p.name}</span>
+        )}
+      </td>
+      <td className="py-3 px-4">
+        {editingRow ? (
+          <input type="text" value={editSku} onChange={(e) => setEditSku(e.target.value)} className={inputClass} placeholder="SKU" />
+        ) : (
+          <span className="text-slate-600 dark:text-slate-400">{p.sku ?? '—'}</span>
+        )}
+      </td>
+      <td className="py-3 px-4 text-right">
+        {editingRow ? (
+          <input type="number" min={0} value={editQuantity} onChange={(e) => setEditQuantity(parseInt(e.target.value, 10) || 0)} className={inputClass} />
+        ) : (
+          <span className="text-slate-900 dark:text-white">{p.quantity}</span>
+        )}
+      </td>
+      <td className="py-3 px-4 text-right">
+        {editingRow ? (
+          <input type="number" min={0} step={0.01} value={editUnitPrice} onChange={(e) => setEditUnitPrice(parseFloat(e.target.value) || 0)} className={inputClass} />
+        ) : (
+          <span className="text-slate-600 dark:text-slate-400">₦{Number(p.unit_price).toLocaleString()}</span>
+        )}
+      </td>
+      <td className="py-3 px-4">
+        {editingRow ? (
+          <input type="number" min={0} value={editLowStock} onChange={(e) => setEditLowStock(parseInt(e.target.value, 10) || 0)} className={`${inputClass} w-16`} title="Low stock alert at" />
+        ) : p.quantity <= p.low_stock_threshold ? (
+          <span className="text-amber-600 dark:text-amber-400 text-xs font-medium">Low stock</span>
+        ) : (
+          <span className="text-slate-500 text-xs">OK</span>
+        )}
+      </td>
+      <td className="py-3 px-4">
+        <div className="flex flex-wrap items-center gap-2">
+          {editingRow ? (
+            <>
+              <button type="button" onClick={saveRow} disabled={savingRow} className="text-xs px-2 py-1 bg-primary-600 text-white rounded hover:bg-primary-700 disabled:opacity-50">
+                {savingRow ? 'Saving…' : 'Save'}
+              </button>
+              <button type="button" onClick={() => setEditingRow(false)} className="text-xs text-slate-500 hover:underline">Cancel</button>
+            </>
           ) : (
-            <span className="text-slate-500 text-xs">OK</span>
+            <>
+              {showStock ? (
+                <form onSubmit={handleStock} className="flex flex-wrap items-center gap-1">
+                  <select value={stockType} onChange={(e) => setStockType(e.target.value as 'in' | 'out')} className="px-2 py-1 text-xs rounded border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white">
+                    <option value="in">In</option>
+                    <option value="out">Out</option>
+                  </select>
+                  <input type="number" min={1} value={stockQty} onChange={(e) => setStockQty(e.target.value)} placeholder="Qty" className="w-14 px-2 py-1 text-xs rounded border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white" />
+                  <input type="text" value={stockNote} onChange={(e) => setStockNote(e.target.value)} placeholder="Note (optional)" className="w-24 min-w-0 px-2 py-1 text-xs rounded border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white" title="Note for this movement" />
+                  <button type="submit" disabled={loading} className="px-2 py-1 text-xs bg-primary-600 text-white rounded hover:bg-primary-700 disabled:opacity-50">Go</button>
+                  <button type="button" onClick={() => setShowStock(false)} className="text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300 text-xs">✕</button>
+                </form>
+              ) : (
+                <button type="button" onClick={() => setShowStock(true)} className="text-xs text-primary-600 hover:underline">Stock in/out</button>
+              )}
+              <button type="button" onClick={startEdit} className="text-xs text-primary-600 hover:underline">Edit</button>
+            </>
           )}
-        </td>
-        <td className="py-3 px-4">
-          <div className="flex flex-wrap items-center gap-2">
-            {showStock ? (
-              <form onSubmit={handleStock} className="flex flex-wrap items-center gap-1">
-                <select value={stockType} onChange={(e) => setStockType(e.target.value as 'in' | 'out')} className="px-2 py-1 text-xs rounded border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white">
-                  <option value="in">In</option>
-                  <option value="out">Out</option>
-                </select>
-                <input type="number" min={1} value={stockQty} onChange={(e) => setStockQty(e.target.value)} placeholder="Qty" className="w-14 px-2 py-1 text-xs rounded border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white" />
-                <input type="text" value={stockNote} onChange={(e) => setStockNote(e.target.value)} placeholder="Note (optional)" className="w-24 min-w-0 px-2 py-1 text-xs rounded border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white" title="Record note" />
-                <button type="submit" disabled={loading} className="px-2 py-1 text-xs bg-primary-600 text-white rounded hover:bg-primary-700 disabled:opacity-50">Go</button>
-                <button type="button" onClick={() => setShowStock(false)} className="text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300 text-xs">✕</button>
-              </form>
-            ) : (
-              <button type="button" onClick={() => setShowStock(true)} className="text-xs text-primary-600 hover:underline">Stock in/out</button>
-            )}
-          </div>
-        </td>
-        <td className="py-3 px-4">
-          <button type="button" onClick={toggleRecordNote} className="text-xs text-primary-600 hover:underline">
-            {showRecordNote ? 'Hide notes' : 'View/Edit notes'}
-          </button>
-        </td>
-      </tr>
-      {showRecordNote && (
-        <tr className="border-b border-slate-100 dark:border-slate-700/50 bg-slate-50/50 dark:bg-slate-800/30">
-          <td colSpan={7} className="py-3 px-4">
-            {movementsLoading ? (
-              <p className="text-xs text-slate-500">Loading…</p>
-            ) : movements.length === 0 ? (
-              <p className="text-xs text-slate-500">No stock movements yet. Use Stock in/out to add; you can add a note there.</p>
-            ) : (
-              <ul className="space-y-2 text-xs">
-                {movements.map((m) => (
-                  <li key={m.id} className="flex flex-wrap items-center gap-2 py-1 border-b border-slate-200 dark:border-slate-700 last:border-0">
-                    <span className="text-slate-600 dark:text-slate-400">
-                      {new Date(m.created_at).toLocaleString()} · {m.type} {m.quantity}
-                    </span>
-                    {editingId === m.id ? (
-                      <>
-                        <input
-                          type="text"
-                          value={editNoteValue}
-                          onChange={(e) => setEditNoteValue(e.target.value)}
-                          placeholder="Record note"
-                          className="flex-1 min-w-0 max-w-xs px-2 py-1 rounded border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white"
-                        />
-                        <button type="button" onClick={() => saveNote(m.id)} disabled={savingNoteId === m.id} className="px-2 py-1 text-primary-600 hover:underline disabled:opacity-50">
-                          {savingNoteId === m.id ? 'Saving…' : 'Save'}
-                        </button>
-                        <button type="button" onClick={() => { setEditingId(null); setEditNoteValue(''); }} className="text-slate-500 hover:underline">Cancel</button>
-                      </>
-                    ) : (
-                      <>
-                        <span className="text-slate-700 dark:text-slate-300">{m.notes || '—'}</span>
-                        <button type="button" onClick={() => { setEditingId(m.id); setEditNoteValue(m.notes ?? ''); }} className="text-primary-600 hover:underline">Edit</button>
-                      </>
-                    )}
-                  </li>
-                ))}
-              </ul>
-            )}
-          </td>
-        </tr>
-      )}
-    </>
+        </div>
+      </td>
+    </tr>
   );
 }
 
@@ -266,7 +250,6 @@ export function InventoryList({ products: initialProducts }: { products: Product
                   <th className="text-right py-3 px-4 font-medium text-slate-700 dark:text-slate-300">Unit price</th>
                   <th className="text-left py-3 px-4 font-medium text-slate-700 dark:text-slate-300">Status</th>
                   <th className="text-left py-3 px-4 font-medium text-slate-700 dark:text-slate-300">Stock In/Out</th>
-                  <th className="text-left py-3 px-4 font-medium text-slate-700 dark:text-slate-300">Record note</th>
                 </tr>
               </thead>
               <tbody>

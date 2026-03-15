@@ -5,7 +5,11 @@ import { hasProducts } from '@/lib/plan';
 import { z } from 'zod';
 
 const updateProductSchema = z.object({
-  unit_price: z.coerce.number().min(0, 'Price must be 0 or greater'),
+  name: z.string().min(1).optional(),
+  sku: z.string().optional().nullable(),
+  quantity: z.coerce.number().min(0).optional(),
+  unit_price: z.coerce.number().min(0, 'Price must be 0 or greater').optional(),
+  low_stock_threshold: z.coerce.number().min(0).optional(),
 });
 
 export async function PUT(
@@ -48,9 +52,16 @@ export async function PUT(
     );
   }
 
+  const updates: Record<string, unknown> = { updated_at: new Date().toISOString() };
+  if (parsed.data.name !== undefined) updates.name = parsed.data.name;
+  if (parsed.data.sku !== undefined) updates.sku = parsed.data.sku;
+  if (parsed.data.quantity !== undefined) updates.quantity = parsed.data.quantity;
+  if (parsed.data.unit_price !== undefined) updates.unit_price = parsed.data.unit_price;
+  if (parsed.data.low_stock_threshold !== undefined) updates.low_stock_threshold = parsed.data.low_stock_threshold;
+
   const { error } = await supabase
     .from('products')
-    .update({ unit_price: parsed.data.unit_price, updated_at: new Date().toISOString() })
+    .update(updates)
     .eq('id', id)
     .eq('user_id', profileId);
 
