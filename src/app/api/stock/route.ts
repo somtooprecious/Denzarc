@@ -47,3 +47,29 @@ export async function POST(req: NextRequest) {
 
   return NextResponse.json(updated);
 }
+
+export async function GET(req: NextRequest) {
+  const profileId = await getSupabaseProfileId();
+  if (!profileId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+  const supabase = createAdminClient();
+  const { data: profileRow } = await supabase.from('profiles').select('plan').eq('id', profileId).single();
+  if (!hasInventory((profileRow?.plan as 'free' | 'pro') ?? 'free')) {
+    return NextResponse.json({ error: 'Pro only' }, { status: 403 });
+  }
+
+  const { searchParams } = new URL(req.url);
+  const productId = searchParams.get('product_id');
+  if (!productId) return NextResponse.json({ error: 'product_id required' }, { status: 400 });
+
+  const { data: movements, error } = await supabase
+    .from('stock_movements')
+    .select('id, product_id, type, quantity, notes, created_at')
+    .eq('user_id', profileId)
+    .eq('product_id', productId)
+    .order('created_at', { ascending: false })
+    .limit(20);
+
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  return NextResponse.json(movements ?? []);
+}

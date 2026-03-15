@@ -14,11 +14,27 @@ interface Product {
   low_stock_threshold: number;
 }
 
+interface StockMovement {
+  id: string;
+  product_id: string;
+  type: string;
+  quantity: number;
+  notes: string | null;
+  created_at: string;
+}
+
 function ProductRow({ product: p, onUpdate }: { product: Product; onUpdate: (p: Product) => void }) {
   const [stockQty, setStockQty] = useState('');
   const [stockType, setStockType] = useState<'in' | 'out'>('in');
+  const [stockNote, setStockNote] = useState('');
   const [loading, setLoading] = useState(false);
   const [showStock, setShowStock] = useState(false);
+  const [showRecordNote, setShowRecordNote] = useState(false);
+  const [movements, setMovements] = useState<StockMovement[]>([]);
+  const [movementsLoading, setMovementsLoading] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editNoteValue, setEditNoteValue] = useState('');
+  const [savingNoteId, setSavingNoteId] = useState<string | null>(null);
 
   async function handleStock(e: React.FormEvent) {
     e.preventDefault();
@@ -27,11 +43,16 @@ function ProductRow({ product: p, onUpdate }: { product: Product; onUpdate: (p: 
     if (stockType === 'out' && qty > p.quantity) { toast.error('Insufficient stock'); return; }
     setLoading(true);
     try {
-      const res = await fetch('/api/stock', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ product_id: p.id, type: stockType, quantity: qty }) });
+      const res = await fetch('/api/stock', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ product_id: p.id, type: stockType, quantity: qty, notes: stockNote.trim() || null }),
+      });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? 'Failed');
       onUpdate(data);
       setStockQty('');
+      setStockNote('');
       setShowStock(false);
       toast.success(`Stock ${stockType === 'in' ? 'added' : 'removed'}`);
     } catch (err: unknown) {
@@ -41,37 +62,122 @@ function ProductRow({ product: p, onUpdate }: { product: Product; onUpdate: (p: 
     }
   }
 
+  async function loadMovements() {
+    setMovementsLoading(true);
+    try {
+      const res = await fetch(`/api/stock?product_id=${encodeURIComponent(p.id)}`);
+      const data = await res.json();
+      if (res.ok) setMovements(Array.isArray(data) ? data : []);
+    } finally {
+      setMovementsLoading(false);
+    }
+  }
+
+  function toggleRecordNote() {
+    if (!showRecordNote) loadMovements();
+    setShowRecordNote((v) => !v);
+  }
+
+  async function saveNote(movementId: string) {
+    setSavingNoteId(movementId);
+    try {
+      const res = await fetch(`/api/stock/${movementId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ notes: editNoteValue.trim() || null }),
+      });
+      if (!res.ok) throw new Error('Failed to save');
+      setMovements((prev) => prev.map((m) => (m.id === movementId ? { ...m, notes: editNoteValue.trim() || null } : m)));
+      setEditingId(null);
+      setEditNoteValue('');
+      toast.success('Note saved');
+    } catch {
+      toast.error('Failed to save note');
+    } finally {
+      setSavingNoteId(null);
+    }
+  }
+
   return (
-    <tr className="border-b border-slate-100 dark:border-slate-700/50">
-      <td className="py-3 px-4 font-medium text-slate-900 dark:text-white">{p.name}</td>
-      <td className="py-3 px-4 text-slate-600 dark:text-slate-400">{p.sku ?? '—'}</td>
-      <td className="py-3 px-4 text-right text-slate-900 dark:text-white">{p.quantity}</td>
-      <td className="py-3 px-4 text-right text-slate-600 dark:text-slate-400">₦{Number(p.unit_price).toLocaleString()}</td>
-      <td className="py-3 px-4">
-        {p.quantity <= p.low_stock_threshold ? (
-          <span className="text-amber-600 dark:text-amber-400 text-xs font-medium">Low stock</span>
-        ) : (
-          <span className="text-slate-500 text-xs">OK</span>
-        )}
-      </td>
-      <td className="py-3 px-4">
-        <div className="flex items-center gap-2">
-          {showStock ? (
-            <form onSubmit={handleStock} className="flex items-center gap-1">
-              <select value={stockType} onChange={(e) => setStockType(e.target.value as 'in' | 'out')} className="px-2 py-1 text-xs rounded border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900">
-                <option value="in">In</option>
-                <option value="out">Out</option>
-              </select>
-              <input type="number" min={1} value={stockQty} onChange={(e) => setStockQty(e.target.value)} placeholder="Qty" className="w-14 px-2 py-1 text-xs rounded border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900" />
-              <button type="submit" disabled={loading} className="px-2 py-1 text-xs bg-primary-600 text-white rounded hover:bg-primary-700 disabled:opacity-50">Go</button>
-              <button type="button" onClick={() => setShowStock(false)} className="text-slate-400 hover:text-slate-600 text-xs">✕</button>
-            </form>
+    <>
+      <tr className="border-b border-slate-100 dark:border-slate-700/50">
+        <td className="py-3 px-4 font-medium text-slate-900 dark:text-white">{p.name}</td>
+        <td className="py-3 px-4 text-slate-600 dark:text-slate-400">{p.sku ?? '—'}</td>
+        <td className="py-3 px-4 text-right text-slate-900 dark:text-white">{p.quantity}</td>
+        <td className="py-3 px-4 text-right text-slate-600 dark:text-slate-400">₦{Number(p.unit_price).toLocaleString()}</td>
+        <td className="py-3 px-4">
+          {p.quantity <= p.low_stock_threshold ? (
+            <span className="text-amber-600 dark:text-amber-400 text-xs font-medium">Low stock</span>
           ) : (
-            <button type="button" onClick={() => setShowStock(true)} className="text-xs text-primary-600 hover:underline">Stock in/out</button>
+            <span className="text-slate-500 text-xs">OK</span>
           )}
-        </div>
-      </td>
-    </tr>
+        </td>
+        <td className="py-3 px-4">
+          <div className="flex flex-wrap items-center gap-2">
+            {showStock ? (
+              <form onSubmit={handleStock} className="flex flex-wrap items-center gap-1">
+                <select value={stockType} onChange={(e) => setStockType(e.target.value as 'in' | 'out')} className="px-2 py-1 text-xs rounded border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white">
+                  <option value="in">In</option>
+                  <option value="out">Out</option>
+                </select>
+                <input type="number" min={1} value={stockQty} onChange={(e) => setStockQty(e.target.value)} placeholder="Qty" className="w-14 px-2 py-1 text-xs rounded border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white" />
+                <input type="text" value={stockNote} onChange={(e) => setStockNote(e.target.value)} placeholder="Note (optional)" className="w-24 min-w-0 px-2 py-1 text-xs rounded border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white" title="Record note" />
+                <button type="submit" disabled={loading} className="px-2 py-1 text-xs bg-primary-600 text-white rounded hover:bg-primary-700 disabled:opacity-50">Go</button>
+                <button type="button" onClick={() => setShowStock(false)} className="text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300 text-xs">✕</button>
+              </form>
+            ) : (
+              <button type="button" onClick={() => setShowStock(true)} className="text-xs text-primary-600 hover:underline">Stock in/out</button>
+            )}
+          </div>
+        </td>
+        <td className="py-3 px-4">
+          <button type="button" onClick={toggleRecordNote} className="text-xs text-primary-600 hover:underline">
+            {showRecordNote ? 'Hide notes' : 'View/Edit notes'}
+          </button>
+        </td>
+      </tr>
+      {showRecordNote && (
+        <tr className="border-b border-slate-100 dark:border-slate-700/50 bg-slate-50/50 dark:bg-slate-800/30">
+          <td colSpan={7} className="py-3 px-4">
+            {movementsLoading ? (
+              <p className="text-xs text-slate-500">Loading…</p>
+            ) : movements.length === 0 ? (
+              <p className="text-xs text-slate-500">No stock movements yet. Use Stock in/out to add; you can add a note there.</p>
+            ) : (
+              <ul className="space-y-2 text-xs">
+                {movements.map((m) => (
+                  <li key={m.id} className="flex flex-wrap items-center gap-2 py-1 border-b border-slate-200 dark:border-slate-700 last:border-0">
+                    <span className="text-slate-600 dark:text-slate-400">
+                      {new Date(m.created_at).toLocaleString()} · {m.type} {m.quantity}
+                    </span>
+                    {editingId === m.id ? (
+                      <>
+                        <input
+                          type="text"
+                          value={editNoteValue}
+                          onChange={(e) => setEditNoteValue(e.target.value)}
+                          placeholder="Record note"
+                          className="flex-1 min-w-0 max-w-xs px-2 py-1 rounded border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white"
+                        />
+                        <button type="button" onClick={() => saveNote(m.id)} disabled={savingNoteId === m.id} className="px-2 py-1 text-primary-600 hover:underline disabled:opacity-50">
+                          {savingNoteId === m.id ? 'Saving…' : 'Save'}
+                        </button>
+                        <button type="button" onClick={() => { setEditingId(null); setEditNoteValue(''); }} className="text-slate-500 hover:underline">Cancel</button>
+                      </>
+                    ) : (
+                      <>
+                        <span className="text-slate-700 dark:text-slate-300">{m.notes || '—'}</span>
+                        <button type="button" onClick={() => { setEditingId(m.id); setEditNoteValue(m.notes ?? ''); }} className="text-primary-600 hover:underline">Edit</button>
+                      </>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </td>
+        </tr>
+      )}
+    </>
   );
 }
 
@@ -160,6 +266,7 @@ export function InventoryList({ products: initialProducts }: { products: Product
                   <th className="text-right py-3 px-4 font-medium text-slate-700 dark:text-slate-300">Unit price</th>
                   <th className="text-left py-3 px-4 font-medium text-slate-700 dark:text-slate-300">Status</th>
                   <th className="text-left py-3 px-4 font-medium text-slate-700 dark:text-slate-300">Stock In/Out</th>
+                  <th className="text-left py-3 px-4 font-medium text-slate-700 dark:text-slate-300">Record note</th>
                 </tr>
               </thead>
               <tbody>
