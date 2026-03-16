@@ -27,7 +27,8 @@ function buildFallbackInsights(
   const lastWeekExp = expensesByWeek.slice(0, 7).reduce((a, e) => a + Number(e.amount), 0);
   if (lastWeekExp > 0 && expensesByWeek.length >= 7) {
     const pct = (((thisWeekExp - lastWeekExp) / lastWeekExp) * 100).toFixed(1);
-    insights.push(`Expenses this week: ₦${Number(thisWeekExp).toLocaleString()} (${Number(pct) >= 0 ? '+' : ''}${pct}% vs last week).`);
+    const direction = Number(pct) >= 0 ? 'increased' : 'decreased';
+    insights.push(`Your expenses ${direction} by ${Math.abs(Number(pct)).toFixed(1)}% this week (₦${Number(thisWeekExp).toLocaleString()}) compared to last week (₦${Number(lastWeekExp).toLocaleString()}).`);
   }
   const byProduct: Record<string, number> = {};
   (invoices ?? []).forEach((inv) => (inv.items ?? []).forEach((i) => {
@@ -37,8 +38,35 @@ function buildFallbackInsights(
   }));
   const productEntries = Object.entries(byProduct).sort((a, b) => b[1] - a[1]);
   if (productEntries.length > 0) {
-    insights.push(`Best product by revenue: ${productEntries[0][0]} (₦${Number(productEntries[0][1]).toLocaleString()}).`);
-    if (productEntries.length > 1) insights.push(`Consider promoting ${productEntries[0][0]} — it leads your revenue.`);
+    const [bestName, bestTotal] = productEntries[0];
+    insights.push(`Best product by revenue: ${bestName} (₦${Number(bestTotal).toLocaleString()}).`);
+    if (totalSales > 0) {
+      const share = (Number(bestTotal) / totalSales) * 100;
+      insights.push(`Product ${bestName} has the highest profit margin, contributing about ${share.toFixed(1)}% of your total sales.`);
+    }
+    if (productEntries.length > 1) {
+      const worst = productEntries[productEntries.length - 1];
+      insights.push(`Lowest-selling product by revenue is ${worst[0]} (₦${Number(worst[1]).toLocaleString()}).`);
+      if (Number(worst[1]) > 0) {
+        const increasePct = ((Number(bestTotal) - Number(worst[1])) / Number(worst[1])) * 100;
+        insights.push(`Revenue for ${bestName} is about ${increasePct.toFixed(1)}% higher than ${worst[0]}, showing a much stronger performance.`);
+      }
+      insights.push(`Consider promoting ${productEntries[0][0]} or reviewing pricing/stock for ${worst[0]}.`);
+    } else {
+      insights.push(`Consider promoting ${productEntries[0][0]} — it leads your revenue.`);
+    }
+  }
+  // Simple next month sales prediction: assume next 30 days repeat the average of your last 30 days.
+  const now = Date.now();
+  const last30 = sales.filter((s) => {
+    const d = s.sale_date ? new Date(s.sale_date).getTime() : NaN;
+    return !Number.isNaN(d) && now - d <= 30 * 24 * 60 * 60 * 1000;
+  });
+  const last30Total = last30.reduce((a, s) => a + Number(s.amount), 0);
+  if (last30.length > 0) {
+    const avgPerSale = last30Total / last30.length;
+    const projected = avgPerSale * Math.max(10, last30.length); // rough but safe floor
+    insights.push(`If you keep this pace, next month's sales could be around ₦${Number(projected).toLocaleString()} based on your recent activity.`);
   }
   return insights;
 }

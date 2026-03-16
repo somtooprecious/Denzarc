@@ -19,7 +19,7 @@ export function AIInsightsView({ sales, expenses, invoices = [] }: { sales: Sale
       const res = await fetch('/api/ai/insights', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ sales, expenses }),
+        body: JSON.stringify({ sales, expenses, invoices }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? 'Failed to fetch insights');
