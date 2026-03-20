@@ -7,6 +7,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { SignOutButton } from '@clerk/nextjs';
 import { useSession } from '@/components/providers/SessionProvider';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { ReviewsSection } from '@/components/reviews/ReviewsSection';
 
 export default function HomePage() {
   const { user, profile, loading } = useSession();
@@ -454,6 +455,7 @@ export default function HomePage() {
             ))}
           </div>
         </section>
+        <ReviewsSection />
       </main>
     </div>
   );
