@@ -19,6 +19,14 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
   return (
     <ClerkProvider
       publishableKey={clerkPublishableKey}
+      localization={{
+        signIn: {
+          start: {
+            title: 'Sign in to Denzarc',
+            subtitle: 'Welcome back! Please sign in to continue',
+          },
+        },
+      }}
       appearance={{
         elements: {
           // Hide "Secured by Clerk" branding footer in account/profile views
