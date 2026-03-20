@@ -25,7 +25,7 @@ export default function SignUpPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-900 px-4">
-      <div className="w-full max-w-md">
+      <div className="w-full max-w-md rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-lg p-6">
         <div className="text-center mb-4">
           <Image
             src="/denzarc%20logo.png"
@@ -41,7 +41,8 @@ export default function SignUpPage() {
             layout: { logoPlacement: 'none' },
             elements: {
               rootBox: 'mx-auto',
-              card: 'shadow-lg border border-slate-200 dark:border-slate-700',
+              // Remove Clerk's card styling so our wrapper box is the only visible one.
+              card: 'shadow-none border-none bg-transparent p-0',
               footer: 'hidden',
             },
           }}
