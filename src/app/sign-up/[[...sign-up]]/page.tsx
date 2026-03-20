@@ -1,6 +1,5 @@
 import { SignUp } from '@clerk/nextjs';
 import Link from 'next/link';
-import Image from 'next/image';
 
 export const dynamic = 'force-dynamic';
 
@@ -25,31 +24,21 @@ export default function SignUpPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-900 px-4">
-      <div className="w-full max-w-md rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-lg p-6">
-        <div className="text-center mb-4">
-          <Image
-            src="/denzarc%20logo.png"
-            alt="Denzarc logo"
-            width={64}
-            height={64}
-            className="mx-auto h-16 w-16 object-contain"
-            priority
-          />
-        </div>
-        <SignUp
-          appearance={{
-            layout: { logoPlacement: 'none' },
-            elements: {
-              rootBox: 'mx-auto',
-              // Remove Clerk's card styling so our wrapper box is the only visible one.
-              card: 'shadow-none border-none bg-transparent p-0',
-              footer: 'hidden',
-            },
-          }}
-          afterSignUpUrl="/dashboard"
-          signInUrl="/sign-in"
-        />
-      </div>
+      <SignUp
+        appearance={{
+          layout: {
+            logoImageUrl: '/denzarc%20logo.png',
+            logoPlacement: 'inside',
+          },
+          elements: {
+            rootBox: 'mx-auto',
+            card: 'shadow-lg border border-slate-200 dark:border-slate-700',
+            footer: 'hidden',
+          },
+        }}
+        afterSignUpUrl="/dashboard"
+        signInUrl="/sign-in"
+      />
     </div>
   );
 }
