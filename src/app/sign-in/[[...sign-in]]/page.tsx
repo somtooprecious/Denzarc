@@ -1,5 +1,6 @@
 import { SignIn } from '@clerk/nextjs';
 import Link from 'next/link';
+import Image from 'next/image';
 
 export const dynamic = 'force-dynamic';
 
@@ -24,17 +25,38 @@ export default function SignInPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-900 px-4">
-      <SignIn
-        appearance={{
-          elements: {
-            rootBox: 'mx-auto',
-            card: 'shadow-lg border border-slate-200 dark:border-slate-700',
-            footer: 'hidden',
-          },
-        }}
-        afterSignInUrl="/dashboard"
-        signUpUrl="/sign-up"
-      />
+      <div className="w-full max-w-md">
+        <div className="text-center mb-4">
+          <Image
+            src="/denzarc%20logo.png"
+            alt="Denzarc logo"
+            width={64}
+            height={64}
+            className="mx-auto h-16 w-16 object-contain"
+            priority
+          />
+          <h1 className="mt-2 text-2xl font-bold text-slate-900 dark:text-white">
+            Sign in to Denzarc
+          </h1>
+          <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
+            Welcome back! Please sign in to continue
+          </p>
+        </div>
+        <SignIn
+          appearance={{
+            layout: { logoPlacement: 'none' },
+            elements: {
+              rootBox: 'mx-auto',
+              card: 'shadow-lg border border-slate-200 dark:border-slate-700',
+              footer: 'hidden',
+              headerTitle: 'hidden',
+              headerSubtitle: 'hidden',
+            },
+          }}
+          afterSignInUrl="/dashboard"
+          signUpUrl="/sign-up"
+        />
+      </div>
     </div>
   );
 }
