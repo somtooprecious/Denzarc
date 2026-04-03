@@ -4,7 +4,8 @@ import { z } from 'zod';
 
 const reviewSchema = z.object({
   name: z.string().min(2, 'Name is required'),
-  email: z.string().email().optional().nullable(),
+  email: z
+    .preprocess((v) => (v === '' || v === undefined ? null : v), z.union([z.string().email(), z.null()]).optional()),
   rating: z.coerce.number().int().min(1).max(5),
   review_text: z.string().min(10, 'Review must be at least 10 characters'),
 });

@@ -59,7 +59,7 @@ export function ReviewsSection() {
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="grid gap-4 max-w-3xl mx-auto">
+        <form noValidate onSubmit={handleSubmit} className="grid gap-4 max-w-3xl mx-auto">
           <div className="grid sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
@@ -79,7 +79,9 @@ export function ReviewsSection() {
                 Email (optional)
               </label>
               <input
-                type="email"
+                type="text"
+                inputMode="email"
+                autoComplete="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white"
