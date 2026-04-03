@@ -10,14 +10,18 @@ export function ReviewsSection() {
   const [reviewText, setReviewText] = useState('');
   const [loading, setLoading] = useState(false);
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
+  async function submitReview() {
     if (!name.trim()) {
       toast.error('Name is required');
       return;
     }
     if (reviewText.trim().length < 10) {
       toast.error('Please write at least 10 characters');
+      return;
+    }
+    const trimmedEmail = email.trim();
+    if (trimmedEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
+      toast.error('Please enter a valid email or leave it blank');
       return;
     }
 
@@ -28,13 +32,19 @@ export function ReviewsSection() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           name: name.trim(),
-          email: email.trim() || null,
+          email: trimmedEmail || null,
           rating,
           review_text: reviewText.trim(),
         }),
       });
 
-      const data = await res.json();
+      const raw = await res.text();
+      let data: { error?: string } = {};
+      try {
+        data = raw ? (JSON.parse(raw) as { error?: string }) : {};
+      } catch {
+        throw new Error('Something went wrong. Please try again.');
+      }
       if (!res.ok) throw new Error(data.error ?? 'Failed to send review');
 
       setName('');
@@ -59,7 +69,8 @@ export function ReviewsSection() {
           </p>
         </div>
 
-        <form noValidate onSubmit={handleSubmit} className="grid gap-4 max-w-3xl mx-auto">
+        {/* No <form>: Safari can still show native "pattern" validation on submit even with noValidate */}
+        <div className="grid gap-4 max-w-3xl mx-auto">
           <div className="grid sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
@@ -71,7 +82,7 @@ export function ReviewsSection() {
                 onChange={(e) => setName(e.target.value)}
                 className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white"
                 placeholder="John Doe"
-                required
+                autoComplete="name"
               />
             </div>
             <div>
@@ -80,12 +91,11 @@ export function ReviewsSection() {
               </label>
               <input
                 type="text"
-                inputMode="email"
-                autoComplete="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white"
                 placeholder="you@example.com"
+                autoComplete="off"
               />
             </div>
           </div>
@@ -124,20 +134,20 @@ export function ReviewsSection() {
               rows={5}
               className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white"
               placeholder="Share your experience with Denzarc..."
-              required
             />
           </div>
 
           <div className="flex justify-center">
             <button
-              type="submit"
+              type="button"
+              onClick={submitReview}
               disabled={loading}
               className="px-6 py-3 bg-primary-600 text-white font-medium rounded-lg hover:bg-primary-700 disabled:opacity-50 transition"
             >
               {loading ? 'Sending…' : 'Submit review'}
             </button>
           </div>
-        </form>
+        </div>
       </div>
     </section>
   );
