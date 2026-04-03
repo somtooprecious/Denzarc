@@ -38,12 +38,21 @@ export function ReviewsSection() {
         }),
       });
 
-      const raw = await res.text();
-      let data: { error?: string } = {};
-      try {
-        data = raw ? (JSON.parse(raw) as { error?: string }) : {};
-      } catch {
-        throw new Error('Something went wrong. Please try again.');
+      const raw = (await res.text()).trim();
+      let data: { ok?: boolean; error?: string } = {};
+      if (raw) {
+        const looksJson = raw.startsWith('{') || raw.startsWith('[');
+        if (looksJson) {
+          try {
+            data = JSON.parse(raw) as { ok?: boolean; error?: string };
+          } catch {
+            throw new Error(
+              `We could not read the server response (${res.status}). Please try again.`
+            );
+          }
+        } else if (!res.ok) {
+          throw new Error(`Request failed (${res.status}). Please try again.`);
+        }
       }
       if (!res.ok) throw new Error(data.error ?? 'Failed to send review');
 

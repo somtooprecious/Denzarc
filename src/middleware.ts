@@ -18,6 +18,8 @@ const isPublicRoute = createRouteMatcher([
   '/api/cron/notifications',
   '/api/payments/verify',
   '/api/payments/webhook',
+  // Landing-page review form (visitors are not signed in)
+  '/api/reviews',
 ]);
 
 export default clerkMiddleware(async (auth, request) => {
