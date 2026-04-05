@@ -4,11 +4,11 @@ import Image from 'next/image';
 export const metadata: Metadata = {
   title: 'About Us',
   description:
-    'Denzarc is a modern small business tools platform for entrepreneurs, freelancers, and sellers: invoices, sales, expenses, customers, and inventory in one place.',
+    'Denzarc is a modern small business tools platform for entrepreneurs, freelancers, and sellers: invoices, sales, expenses, products, customers, and inventory in one place.',
   openGraph: {
     title: 'About Denzarc | Small Business Tools',
     description:
-      'Denzarc helps small businesses manage invoices, sales, expenses, customers, and inventory in one place.',
+      'Denzarc helps small businesses manage invoices, sales, expenses, products, customers, and inventory in one place.',
   },
 };
 
@@ -54,7 +54,11 @@ export default function AboutPage() {
             <li>
               Customer Management (CRM-Lite) – Manage customer profiles, purchase history, outstanding balances, and notes.
             </li>
-            <li>Inventory Management – Track products, stock levels, and receive low-stock alerts.</li>
+            <li>
+              Product Catalog – Add products with prices and SKUs, keep your catalog up to date, and reuse items on invoices
+              and inventory.
+            </li>
+            <li>Inventory Management – Track stock in and out, levels, and receive low-stock alerts.</li>
           </ul>
         </section>
 
@@ -85,7 +89,8 @@ export default function AboutPage() {
             </li>
             <li>
               Pro Plan – Unlimited invoices and receipts, remove platform branding, advanced sales and expense tracking,
-              profit reports, customer and inventory management, automated notifications, and AI-powered business insights.
+              profit reports, product catalog, customer and inventory management, automated notifications, and AI-powered
+              business insights.
             </li>
           </ul>
           <p className="text-slate-600 dark:text-slate-400">

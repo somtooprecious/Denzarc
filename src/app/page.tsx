@@ -334,7 +334,7 @@ export default function HomePage() {
             </span>
           </h1>
           <p className="text-xl text-slate-600 dark:text-slate-400 mb-8 max-w-2xl mx-auto">
-            Create invoices & receipts, track sales & expenses, manage customers & inventory.
+            Create invoices & receipts, track sales & expenses, manage products, customers & inventory.
             Free and Pro plans.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -362,8 +362,9 @@ export default function HomePage() {
               Easy business tools for smarter growth.
             </h2>
             <p className="text-slate-600 dark:text-slate-400 mt-3">
-              Create invoices and receipts, track sales and expenses, manage customers and inventory, and keep
-              your business finances organized in one simple workflow built for small business owners.
+              Create invoices and receipts, track sales and expenses, build your product catalog, manage customers
+              and inventory, and keep your business finances organized in one simple workflow built for small
+              business owners.
             </p>
           </div>
         </motion.div>
@@ -386,10 +387,11 @@ export default function HomePage() {
             { title: '3. Expense Tracker', desc: 'Categorized expenses, monthly summaries.', href: '/sign-up', pro: false },
             { title: '4. Profit Dashboard', desc: 'Total sales, total expenses, net profit, best selling day/product, animated charts.', href: '/sign-up', pro: true },
             { title: '5. Customer Management (CRM Lite)', desc: 'Customer profiles, purchase history, outstanding balances, notes (VIP, frequent buyer).', href: '/sign-up', pro: true },
-            { title: '6. Inventory Management', desc: 'Products, stock in/out, low stock alerts (email & WhatsApp).', href: '/sign-up', pro: true },
-            { title: '7. Notifications', desc: 'Email alerts: invoice sent, payment reminder, low stock alert, and subscription expiry reminder. Share invoice links on WhatsApp directly from invoice actions.', href: '/sign-up', pro: true },
-            { title: '8. AI Business Intelligence', desc: 'Analyze sales & expenses, profit insights, predict next month sales, highlight best & worst products. E.g. "Expenses +18%", "You sell more on Fridays", "Product A highest margin".', href: '/sign-up', pro: true },
-            { title: '9. Subscription & Payments', desc: 'Upgrade to Pro: Initialize Paystack, verify payment, upgrade plan. Subscription start/end, renew/expires display.', href: '/sign-up', pro: true },
+            { title: '6. Product Catalog', desc: 'Add products with names, prices, and SKUs; edit anytime and use them on invoices and inventory for consistent pricing.', href: '/sign-up', pro: true },
+            { title: '7. Inventory Management', desc: 'Stock in/out movements, notes on adjustments, low stock alerts (email & WhatsApp).', href: '/sign-up', pro: true },
+            { title: '8. Notifications', desc: 'Email alerts: invoice sent, payment reminder, low stock alert, and subscription expiry reminder. Share invoice links on WhatsApp directly from invoice actions.', href: '/sign-up', pro: true },
+            { title: '9. AI Business Intelligence', desc: 'Analyze sales & expenses, profit insights, predict next month sales, highlight best & worst products. E.g. "Expenses +18%", "You sell more on Fridays", "Product A highest margin".', href: '/sign-up', pro: true },
+            { title: '10. Subscription & Payments', desc: 'Upgrade to Pro: Initialize Paystack, verify payment, upgrade plan. Subscription start/end, renew/expires display.', href: '/sign-up', pro: true },
           ].map((card) => (
             <Link
               key={card.title}
@@ -430,7 +432,7 @@ export default function HomePage() {
               },
               {
                 q: 'What features are included in the Pro plan?',
-                a: 'Pro unlocks unlimited invoices, advanced reports, customer and inventory tools, and automation features.',
+                a: 'Pro unlocks unlimited invoices, advanced reports, product catalog, customer and inventory tools, and automation features.',
               },
               {
                 q: 'Is my data secure?',

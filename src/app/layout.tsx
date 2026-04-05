@@ -47,13 +47,14 @@ export const metadata: Metadata = {
     template: '%s | Denzarc',
   },
   description:
-    'Create invoices & receipts, track sales & expenses, manage customers & inventory. Free and Pro plans. Built for small business owners.',
+    'Create invoices & receipts, track sales & expenses, manage products, customers & inventory. Free and Pro plans. Built for small business owners.',
   keywords: [
     'invoice generator',
     'small business tools',
     'sales tracker',
     'expense tracker',
     'profit tracking',
+    'product catalog',
     'customer management',
     'inventory management',
     'receipt generator',
@@ -68,7 +69,7 @@ export const metadata: Metadata = {
     siteName: 'Denzarc',
     title: 'Denzarc | Small Business Tools – Invoices, Sales & Profit Tracking',
     description:
-      'Create invoices & receipts, track sales & expenses, manage customers & inventory. Free and Pro plans.',
+      'Create invoices & receipts, track sales & expenses, manage products, customers & inventory. Free and Pro plans.',
     images: [
       {
         url: '/denzarc%20logo.png',
@@ -82,7 +83,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Denzarc | Small Business Tools – Invoices, Sales & Profit Tracking',
     description:
-      'Create invoices & receipts, track sales & expenses, manage customers & inventory. Free and Pro plans.',
+      'Create invoices & receipts, track sales & expenses, manage products, customers & inventory. Free and Pro plans.',
   },
   icons: {
     icon: [
@@ -116,7 +117,7 @@ export default function RootLayout({
         url: baseUrl,
         logo: `${baseUrl}/denzarc%20logo.png`,
         description:
-          'Small business tools: invoices, sales & expense tracking, customer and inventory management, AI insights.',
+          'Small business tools: invoices, sales & expense tracking, product catalog, customer and inventory management, AI insights.',
       },
       {
         '@type': 'WebSite',
@@ -124,7 +125,7 @@ export default function RootLayout({
         url: baseUrl,
         publisher: { '@id': `${baseUrl}#organization` },
         description:
-          'Create invoices & receipts, track sales & expenses, manage customers & inventory. Free and Pro plans.',
+          'Create invoices & receipts, track sales & expenses, manage products, customers & inventory. Free and Pro plans.',
       },
     ],
   };
@@ -158,7 +159,7 @@ export default function RootLayout({
                       Denzarc
                     </div>
                     <p className="text-sm">
-                      Invoices, sales, expenses, customers, inventory, and profit tracking in one place.
+                      Invoices, sales, expenses, products, customers, inventory, and profit tracking in one place.
                       Built to help small businesses get paid faster and stay organized.
                     </p>
                     <p className="text-xs">© {new Date().getFullYear()} Denzarc. All rights reserved.</p>
@@ -168,6 +169,7 @@ export default function RootLayout({
                     <ul className="space-y-2 text-sm">
                       <li>Invoices & receipts</li>
                       <li>Sales & expenses</li>
+                      <li>Product catalog</li>
                       <li>Customers & inventory</li>
                       <li>AI insights & notifications</li>
                     </ul>
