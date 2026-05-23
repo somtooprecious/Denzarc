@@ -1,11 +1,10 @@
-import { auth } from '@clerk/nextjs/server';
-import { randomUUID } from 'crypto';
-import { createAdminClient } from '@/lib/supabase/admin';
+import { auth, currentUser } from '@clerk/nextjs/server';
+import { tryCreateAdminClient } from '@/lib/supabase/admin';
+import { upsertProfileForClerkUser } from '@/lib/profile-sync';
 import type { Profile } from '@/types';
 
 /**
  * Get the current Clerk user id, or null if not signed in.
- * Catches Clerk errors (e.g. bad config, domain) so the app redirects to sign-in instead of crashing.
  */
 export async function getClerkUserId(): Promise<string | null> {
   try {
@@ -18,70 +17,79 @@ export async function getClerkUserId(): Promise<string | null> {
 
 /**
  * Get the Supabase profile id for the current Clerk user.
- * Creates a profile row if none exists (first sign-in with Clerk).
- * Returns null if not signed in.
+ * Creates or updates the profile on first sign-in.
  */
 export async function getSupabaseProfileId(): Promise<string | null> {
   const clerkId = await getClerkUserId();
   if (!clerkId) return null;
 
-  const supabase = createAdminClient();
+  const supabase = tryCreateAdminClient();
+  if (!supabase) {
+    console.error('[auth] Supabase is not configured');
+    return null;
+  }
+
   const { data: existing } = await supabase
     .from('profiles')
     .select('id')
     .eq('clerk_user_id', clerkId)
-    .single();
+    .maybeSingle();
 
   if (existing?.id) return existing.id;
 
-  // First sign-in: create profile. We need Clerk user email/name from auth().
-  let userId: string | null = null;
-  let sessionClaims: Record<string, unknown> | undefined;
-  try {
-    const a = await auth();
-    userId = a.userId;
-    sessionClaims = a.sessionClaims as Record<string, unknown> | undefined;
-  } catch {
+  const user = await currentUser();
+  const email =
+    user?.emailAddresses?.find((e) => e.id === user.primaryEmailAddressId)?.emailAddress ??
+    user?.emailAddresses?.[0]?.emailAddress ??
+    '';
+  const fullName = user?.fullName ?? user?.firstName ?? null;
+
+  const result = await upsertProfileForClerkUser({
+    clerkUserId: clerkId,
+    email,
+    fullName,
+  });
+
+  if (!result.ok) {
+    console.error('[auth] Profile sync failed:', result.code, result.message);
     return null;
   }
-  if (!userId) return null;
-  const email = (sessionClaims?.email as string) ?? '';
-  const fullName = (sessionClaims?.full_name as string) ?? (sessionClaims?.name as string) ?? null;
 
-  const { data: inserted, error } = await supabase
-    .from('profiles')
-    .insert({
-      id: randomUUID(),
-      clerk_user_id: clerkId,
-      email: email || `clerk-${clerkId}@placeholder.local`,
-      full_name: fullName,
-      plan: 'free',
-    })
-    .select('id')
-    .single();
+  return result.profileId;
+}
 
-  if (error) {
-    // Race: another request may have inserted; fetch again
-    const { data: again } = await supabase
-      .from('profiles')
-      .select('id')
-      .eq('clerk_user_id', clerkId)
-      .single();
-    if (again?.id) return again.id;
-    throw new Error(`Failed to create profile: ${error.message}`);
-  }
-  return inserted?.id ?? null;
+/**
+ * Force sync profile from Clerk (used by API + retry button).
+ */
+export async function syncCurrentUserProfile(): Promise<
+  { profileId: string } | { error: string; code?: string }
+> {
+  const clerkId = await getClerkUserId();
+  if (!clerkId) return { error: 'Not signed in', code: 'UNAUTHORIZED' };
+
+  const user = await currentUser();
+  const result = await upsertProfileForClerkUser({
+    clerkUserId: clerkId,
+    email:
+      user?.emailAddresses?.find((e) => e.id === user.primaryEmailAddressId)?.emailAddress ??
+      user?.emailAddresses?.[0]?.emailAddress,
+    fullName: user?.fullName ?? user?.firstName ?? null,
+  });
+
+  if (!result.ok) return { error: result.message, code: result.code };
+  return { profileId: result.profileId };
 }
 
 /**
  * Get the full profile row for the current Clerk user.
- * Returns null if not signed in or profile not found.
  */
 export async function getSupabaseProfile(): Promise<Profile | null> {
   const profileId = await getSupabaseProfileId();
   if (!profileId) return null;
 
-  const supabase = createAdminClient();
+  const supabase = tryCreateAdminClient();
+  if (!supabase) return null;
+
   const { data, error } = await supabase
     .from('profiles')
     .select('*')

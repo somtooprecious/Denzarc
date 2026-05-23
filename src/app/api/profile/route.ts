@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
-import { getSupabaseProfileId } from '@/lib/auth';
-import { createAdminClient } from '@/lib/supabase/admin';
+import { getSupabaseProfileId, syncCurrentUserProfile } from '@/lib/auth';
+import { createAdminClient, tryCreateAdminClient } from '@/lib/supabase/admin';
 
 const updateSchema = z.object({
   business_name: z.string().optional().nullable(),
@@ -11,10 +11,17 @@ const updateSchema = z.object({
 });
 
 export async function GET() {
-  const profileId = await getSupabaseProfileId();
+  let profileId = await getSupabaseProfileId();
+  if (!profileId) {
+    const synced = await syncCurrentUserProfile();
+    if ('profileId' in synced) profileId = synced.profileId;
+  }
   if (!profileId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-  const supabase = createAdminClient();
+  const supabase = tryCreateAdminClient();
+  if (!supabase) {
+    return NextResponse.json({ error: 'Database not configured' }, { status: 503 });
+  }
   const { data, error } = await supabase
     .from('profiles')
     .select('*')

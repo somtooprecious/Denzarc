@@ -42,8 +42,16 @@ export default function Error({
             Sign in
           </Link>
         </div>
-        <p className="mt-4 text-xs text-slate-500 dark:text-slate-400">
-          If this keeps happening, check that <strong>NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY</strong> and <strong>CLERK_SECRET_KEY</strong> are set in your Vercel project environment variables.
+        <p className="mt-4 text-xs text-slate-500 dark:text-slate-400 text-left">
+          In <strong>Vercel → Environment Variables</strong>, confirm:
+          <br />
+          • <strong>NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY</strong> and <strong>CLERK_SECRET_KEY</strong>
+          <br />
+          • <strong>NEXT_PUBLIC_SUPABASE_URL</strong> and <strong>SUPABASE_SERVICE_ROLE_KEY</strong>
+          <br />
+          • <strong>NEXT_PUBLIC_APP_URL</strong> = https://denzarc.com
+          <br />
+          In <strong>Clerk</strong>, add domain denzarc.com. In <strong>Supabase</strong>, run migration <strong>005_clerk_auth.sql</strong>, then redeploy.
         </p>
       </div>
     </div>

@@ -1,20 +1,45 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
-import { createAdminClient } from '@/lib/supabase/admin';
-import { getSupabaseProfileId } from '@/lib/auth';
+import { tryCreateAdminClient } from '@/lib/supabase/admin';
+import { getClerkUserId, getSupabaseProfileId } from '@/lib/auth';
 import { hasProfitDashboard, isPro } from '@/lib/plan';
 import { DashboardStats } from '@/components/dashboard/DashboardStats';
 import { UpgradeSuccessRefresh } from '@/components/dashboard/UpgradeSuccessRefresh';
 import { SyncSubscriptionButton } from '@/components/dashboard/SyncSubscriptionButton';
+import { AccountSetupRequired } from '@/components/dashboard/AccountSetupRequired';
+import { ProfileAutoSync } from '@/components/dashboard/ProfileAutoSync';
+
+export const dynamic = 'force-dynamic';
 
 export default async function DashboardPage({
   searchParams = {},
 }: {
   searchParams?: Record<string, string | string[] | undefined>;
 }) {
+  const clerkId = await getClerkUserId();
+  if (!clerkId) redirect('/sign-in');
+
   const profileId = await getSupabaseProfileId();
-  if (!profileId) redirect('/sign-in');
-  const supabase = createAdminClient();
+  if (!profileId) {
+    return (
+      <div className="space-y-6">
+        <ProfileAutoSync />
+        <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Dashboard</h1>
+        <AccountSetupRequired />
+      </div>
+    );
+  }
+
+  const supabase = tryCreateAdminClient();
+  if (!supabase) {
+    return (
+      <div className="space-y-6">
+        <ProfileAutoSync />
+        <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Dashboard</h1>
+        <AccountSetupRequired />
+      </div>
+    );
+  }
 
   const { data: profile } = await supabase
     .from('profiles')

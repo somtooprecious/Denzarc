@@ -36,7 +36,8 @@ export default function SignUpPage() {
             footer: 'hidden',
           },
         }}
-        afterSignUpUrl="/dashboard"
+        forceRedirectUrl="/dashboard"
+        fallbackRedirectUrl="/dashboard"
         signInUrl="/sign-in"
       />
     </div>

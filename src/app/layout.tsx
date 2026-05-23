@@ -19,6 +19,11 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
   return (
     <ClerkProvider
       publishableKey={clerkPublishableKey}
+      signInUrl="/sign-in"
+      signUpUrl="/sign-up"
+      signInFallbackRedirectUrl="/dashboard"
+      signUpFallbackRedirectUrl="/dashboard"
+      afterSignOutUrl="/"
       localization={{
         signIn: {
           start: {

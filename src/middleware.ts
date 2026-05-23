@@ -18,6 +18,8 @@ const isPublicRoute = createRouteMatcher([
   '/api/cron/notifications',
   '/api/payments/verify',
   '/api/payments/webhook',
+  '/api/webhooks/clerk',
+  '/api/setup/status',
   // Landing-page review form (visitors are not signed in)
   '/api/reviews',
 ]);
