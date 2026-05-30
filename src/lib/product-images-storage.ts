@@ -5,8 +5,8 @@ export const PRODUCT_IMAGES_BUCKET = 'product-images';
 const BUCKET_OPTIONS = {
   public: true,
   fileSizeLimit: 5 * 1024 * 1024,
-  allowedMimeTypes: ['image/jpeg', 'image/png', 'image/webp', 'image/gif'],
-} as const;
+  allowedMimeTypes: ['image/jpeg', 'image/png', 'image/webp', 'image/gif'] as string[],
+};
 
 /**
  * Ensures the product-images bucket exists (creates it via service role if missing).
