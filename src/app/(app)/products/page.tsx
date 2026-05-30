@@ -1,11 +1,12 @@
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { createAdminClient } from '@/lib/supabase/admin';
-import { getSupabaseProfileId } from '@/lib/auth';
+import { getSupabaseProfile, getSupabaseProfileId } from '@/lib/auth';
 import { ensureCatalogSlug } from '@/lib/catalog';
 import { hasProducts } from '@/lib/plan';
 import { getAppUrl } from '@/lib/url';
 import { ProductCatalogManager } from '@/components/products/ProductCatalogManager';
+import { ProductsProUpgrade } from '@/components/products/ProductsProUpgrade';
 import type { Product } from '@/types';
 
 export const dynamic = 'force-dynamic';
@@ -13,20 +14,29 @@ export const dynamic = 'force-dynamic';
 export default async function ProductsPage() {
   const profileId = await getSupabaseProfileId();
   if (!profileId) redirect('/sign-in');
+
+  const profile = await getSupabaseProfile();
+  if (!profile) redirect('/sign-in');
+
+  const plan = (profile.plan as 'free' | 'pro') ?? 'free';
+
+  if (!hasProducts(plan)) {
+    return (
+      <div className="space-y-4">
+        <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Product catalog</h1>
+        <ProductsProUpgrade />
+      </div>
+    );
+  }
+
   const supabase = createAdminClient();
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('plan, business_name, email, catalog_slug')
-    .eq('id', profileId)
-    .single();
 
-  if (!hasProducts((profile?.plan as 'free' | 'pro') ?? 'free')) redirect('/pricing');
+  let catalogSlug = profile.catalog_slug ?? null;
+  if (!catalogSlug) {
+    catalogSlug = await ensureCatalogSlug(profileId, profile.business_name, profile.email);
+  }
 
-  const catalogSlug =
-    profile?.catalog_slug ??
-    (await ensureCatalogSlug(profileId, profile?.business_name ?? null, profile?.email ?? ''));
-
-  const { data: products } = await supabase
+  const { data: products, error: productsError } = await supabase
     .from('products')
     .select('*')
     .eq('user_id', profileId)
@@ -51,6 +61,17 @@ export default async function ProductsPage() {
           Edit business profile →
         </Link>
       </div>
+      {productsError && (
+        <p className="text-sm text-amber-700 dark:text-amber-300 rounded-lg border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-900/20 px-4 py-3">
+          Could not load products: {productsError.message}
+        </p>
+      )}
+      {!catalogUrl && (
+        <p className="text-sm text-slate-500 dark:text-slate-400">
+          Public catalog link will appear after database migration{' '}
+          <code className="text-xs">009_product_catalog.sql</code> is applied in Supabase.
+        </p>
+      )}
       <ProductCatalogManager
         products={(products ?? []) as Product[]}
         catalogUrl={catalogUrl}

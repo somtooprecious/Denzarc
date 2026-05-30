@@ -69,6 +69,7 @@ export function PricingCards({ currentPlan, isLoggedIn, subscriptionEnd }: { cur
           <li>Profit dashboard and reports</li>
           <li>Customer management</li>
           <li>Inventory tracking</li>
+          <li>Product catalog with photo uploads</li>
           <li>AI insights and predictions</li>
           <li>Email and WhatsApp notifications</li>
         </ul>
