@@ -66,12 +66,6 @@ export default async function ProductsPage() {
           Could not load products: {productsError.message}
         </p>
       )}
-      {!catalogUrl && (
-        <p className="text-sm text-slate-500 dark:text-slate-400">
-          Public catalog link will appear after database migration{' '}
-          <code className="text-xs">009_product_catalog.sql</code> is applied in Supabase.
-        </p>
-      )}
       <ProductCatalogManager
         products={(products ?? []) as Product[]}
         catalogUrl={catalogUrl}

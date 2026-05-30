@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
 import type { Product } from '@/types';
@@ -76,6 +76,30 @@ export function ProductCatalogManager({
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imageRemoved, setImageRemoved] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [shareUrl, setShareUrl] = useState<string | null>(catalogUrl);
+  const [loadingShareUrl, setLoadingShareUrl] = useState(!catalogUrl);
+
+  useEffect(() => {
+    setShareUrl(catalogUrl);
+    if (catalogUrl) {
+      setLoadingShareUrl(false);
+      return;
+    }
+    let cancelled = false;
+    setLoadingShareUrl(true);
+    fetch('/api/catalog/me')
+      .then((r) => r.json())
+      .then((data) => {
+        if (!cancelled && data.url) setShareUrl(data.url);
+      })
+      .catch(() => {})
+      .finally(() => {
+        if (!cancelled) setLoadingShareUrl(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [catalogUrl]);
 
   const stats = useMemo(() => {
     const listed = products.filter((p) => p.is_listed !== false).length;
@@ -260,12 +284,27 @@ export function ProductCatalogManager({
     }
   }
 
-  function copyCatalogLink() {
-    if (!catalogUrl) {
-      toast.error('Save your business name in Settings to generate a catalog link');
-      return;
+  async function copyCatalogLink() {
+    let url = shareUrl;
+    if (!url) {
+      setLoadingShareUrl(true);
+      try {
+        const res = await fetch('/api/catalog/me');
+        const data = await res.json();
+        if (!res.ok || !data.url) {
+          toast.error(data.error ?? 'Could not create catalog link');
+          return;
+        }
+        url = data.url;
+        setShareUrl(url);
+      } catch {
+        toast.error('Could not create catalog link');
+        return;
+      } finally {
+        setLoadingShareUrl(false);
+      }
     }
-    navigator.clipboard.writeText(catalogUrl);
+    await navigator.clipboard.writeText(url);
     toast.success('Catalog link copied');
   }
 
@@ -277,25 +316,42 @@ export function ProductCatalogManager({
           { label: 'Total products', value: stats.total },
           { label: 'Listed publicly', value: stats.listed },
           { label: 'In stock', value: stats.inStock },
-          { label: 'Catalog views', value: 'Share link →' },
-        ].map((s) => (
-          <div
-            key={s.label}
-            className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-4"
-          >
-            <p className="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">
-              {s.label}
-            </p>
-            <p className="mt-1 text-2xl font-bold text-slate-900 dark:text-white">{s.value}</p>
-          </div>
-        ))}
+          { label: 'Public catalog', value: null, action: true },
+        ].map((s) =>
+          s.action ? (
+            <button
+              key={s.label}
+              type="button"
+              onClick={copyCatalogLink}
+              disabled={loadingShareUrl}
+              className="rounded-xl border border-primary-200 dark:border-primary-800 bg-primary-50/50 dark:bg-primary-900/20 p-4 text-left hover:bg-primary-50 dark:hover:bg-primary-900/30 transition disabled:opacity-60"
+            >
+              <p className="text-xs font-medium uppercase tracking-wide text-primary-600 dark:text-primary-400">
+                {s.label}
+              </p>
+              <p className="mt-1 text-lg font-bold text-primary-700 dark:text-primary-300">
+                {loadingShareUrl ? 'Loading…' : shareUrl ? 'Copy link →' : 'Get share link →'}
+              </p>
+            </button>
+          ) : (
+            <div
+              key={s.label}
+              className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-4"
+            >
+              <p className="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                {s.label}
+              </p>
+              <p className="mt-1 text-2xl font-bold text-slate-900 dark:text-white">{s.value}</p>
+            </div>
+          )
+        )}
       </div>
 
-      {catalogUrl && (
+      {shareUrl && (
         <div className="flex flex-col sm:flex-row sm:items-center gap-3 rounded-xl border border-primary-200 dark:border-primary-800 bg-primary-50/80 dark:bg-primary-900/20 p-4">
           <div className="flex-1 min-w-0">
             <p className="text-sm font-medium text-primary-900 dark:text-primary-100">Public catalog</p>
-            <p className="text-sm text-primary-800/80 dark:text-primary-200/80 truncate">{catalogUrl}</p>
+            <p className="text-sm text-primary-800/80 dark:text-primary-200/80 truncate">{shareUrl}</p>
           </div>
           <div className="flex gap-2 shrink-0">
             <button
@@ -306,7 +362,7 @@ export function ProductCatalogManager({
               Copy link
             </button>
             <a
-              href={catalogUrl}
+              href={shareUrl}
               target="_blank"
               rel="noreferrer"
               className="px-4 py-2 text-sm font-medium rounded-lg border border-primary-600 text-primary-700 dark:text-primary-300 hover:bg-primary-100 dark:hover:bg-primary-900/40 transition"
