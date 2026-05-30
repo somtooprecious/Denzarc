@@ -45,8 +45,12 @@ In **SQL Editor**, run migrations in order:
 3. `003_profile_phone.sql`
 4. `004_users_and_payments.sql`
 5. **`005_clerk_auth.sql`** ← required for Clerk sign-in
+6. **`009_product_catalog.sql`** ← product images, categories, public catalog URL
+7. **`010_product_images_storage.sql`** ← Supabase Storage bucket for product photo uploads
 
 Migration `005` adds `clerk_user_id` to `profiles` and removes dependency on Supabase Auth.
+
+Migration `009` adds product catalog fields and `catalog_slug` on profiles for shareable shop pages (`/catalog/your-shop`).
 
 ## 5. Verify
 

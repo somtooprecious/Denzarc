@@ -3,6 +3,7 @@ import type { Plan } from '@/lib/plan';
 export interface Profile {
   id: string;
   clerk_user_id?: string | null;
+  catalog_slug?: string | null;
   email: string;
   full_name: string | null;
   business_name: string | null;
@@ -92,10 +93,13 @@ export interface Product {
   user_id: string;
   name: string;
   description: string | null;
+  category: string | null;
+  image_url: string | null;
   sku: string | null;
   quantity: number;
   unit_price: number;
   low_stock_threshold: number;
+  is_listed: boolean;
   created_at: string;
   updated_at: string;
 }
