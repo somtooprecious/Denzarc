@@ -3,6 +3,10 @@ import { randomUUID } from 'crypto';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { getSupabaseProfileId } from '@/lib/auth';
 import { hasProducts } from '@/lib/plan';
+import {
+  ensureProductImagesBucket,
+  PRODUCT_IMAGES_BUCKET,
+} from '@/lib/product-images-storage';
 
 const MAX_BYTES = 5 * 1024 * 1024;
 const ALLOWED_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif']);
@@ -47,24 +51,31 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Image must be 5 MB or smaller' }, { status: 400 });
   }
 
+  const bucketReady = await ensureProductImagesBucket(supabase);
+  if (!bucketReady.ok) {
+    return NextResponse.json(
+      {
+        error: `Could not create image storage: ${bucketReady.error}. In Supabase SQL Editor, run migration 010_product_images_storage.sql.`,
+      },
+      { status: 500 }
+    );
+  }
+
   const ext = EXT_BY_TYPE[file.type] ?? 'jpg';
   const path = `${profileId}/${randomUUID()}.${ext}`;
   const buffer = Buffer.from(await file.arrayBuffer());
 
-  const { error: uploadError } = await supabase.storage.from('product-images').upload(path, buffer, {
+  const { error: uploadError } = await supabase.storage.from(PRODUCT_IMAGES_BUCKET).upload(path, buffer, {
     contentType: file.type,
     cacheControl: '3600',
     upsert: false,
   });
 
   if (uploadError) {
-    const msg = uploadError.message.includes('Bucket not found')
-      ? 'Storage not set up. Run migration 010_product_images_storage.sql in Supabase.'
-      : uploadError.message;
-    return NextResponse.json({ error: msg }, { status: 500 });
+    return NextResponse.json({ error: uploadError.message }, { status: 500 });
   }
 
-  const { data: urlData } = supabase.storage.from('product-images').getPublicUrl(path);
+  const { data: urlData } = supabase.storage.from(PRODUCT_IMAGES_BUCKET).getPublicUrl(path);
 
   return NextResponse.json({ url: urlData.publicUrl, path });
 }

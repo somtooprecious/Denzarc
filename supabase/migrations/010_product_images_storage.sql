@@ -18,3 +18,22 @@ DROP POLICY IF EXISTS "Public read product images" ON storage.objects;
 CREATE POLICY "Public read product images"
 ON storage.objects FOR SELECT
 USING (bucket_id = 'product-images');
+
+-- Server (service role) uploads via /api/products/upload
+DROP POLICY IF EXISTS "Service role upload product images" ON storage.objects;
+CREATE POLICY "Service role upload product images"
+ON storage.objects FOR INSERT
+TO service_role
+WITH CHECK (bucket_id = 'product-images');
+
+DROP POLICY IF EXISTS "Service role update product images" ON storage.objects;
+CREATE POLICY "Service role update product images"
+ON storage.objects FOR UPDATE
+TO service_role
+USING (bucket_id = 'product-images');
+
+DROP POLICY IF EXISTS "Service role delete product images" ON storage.objects;
+CREATE POLICY "Service role delete product images"
+ON storage.objects FOR DELETE
+TO service_role
+USING (bucket_id = 'product-images');
