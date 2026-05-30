@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
 import type { Product } from '@/types';
 import { ProductImageUpload } from '@/components/products/ProductImageUpload';
+import { CatalogShareDialog } from '@/components/products/CatalogShareDialog';
 
 const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
 
@@ -78,6 +79,7 @@ export function ProductCatalogManager({
   const [saving, setSaving] = useState(false);
   const [shareUrl, setShareUrl] = useState<string | null>(catalogUrl);
   const [loadingShareUrl, setLoadingShareUrl] = useState(!catalogUrl);
+  const [shareDialogOpen, setShareDialogOpen] = useState(false);
 
   useEffect(() => {
     setShareUrl(catalogUrl);
@@ -315,37 +317,44 @@ export function ProductCatalogManager({
     }
   }
 
+  function openShareDialog(url: string) {
+    setShareUrl(url);
+    setShareDialogOpen(true);
+  }
+
   async function shareCatalogLink() {
     const url = await resolveCatalogUrl();
     if (!url) return;
 
-    const sharePayload = {
-      title: 'My product catalog — Denzarc',
-      text: 'Browse my available products:',
-      url,
-    };
+    const isMobile =
+      typeof window !== 'undefined' &&
+      /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 
-    try {
-      if (typeof navigator.share === 'function') {
-        if (!navigator.canShare || navigator.canShare(sharePayload)) {
-          await navigator.share(sharePayload);
-          return;
-        }
+    if (isMobile && typeof navigator.share === 'function') {
+      try {
+        await navigator.share({
+          title: 'My product catalog',
+          text: 'Browse my available products',
+          url,
+        });
+        return;
+      } catch (err) {
+        if (err instanceof Error && err.name === 'AbortError') return;
       }
-    } catch (err) {
-      if (err instanceof Error && err.name === 'AbortError') return;
     }
 
-    try {
-      await navigator.clipboard.writeText(url);
-      toast.success('Link copied — paste in WhatsApp, email, or messages to share');
-    } catch {
-      toast.error('Sharing is not supported on this device. Use Copy link instead.');
-    }
+    openShareDialog(url);
   }
 
   return (
     <div className="space-y-8">
+      {shareUrl && (
+        <CatalogShareDialog
+          url={shareUrl}
+          open={shareDialogOpen}
+          onClose={() => setShareDialogOpen(false)}
+        />
+      )}
       {/* Stats & catalog link */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {[
