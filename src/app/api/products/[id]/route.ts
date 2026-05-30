@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { getSupabaseProfileId } from '@/lib/auth';
 import { hasProducts } from '@/lib/plan';
+import { formatProductDbError } from '@/lib/products-db';
 import { z } from 'zod';
 
 const updateProductSchema = z.object({
@@ -71,7 +72,7 @@ export async function PUT(
   if (parsed.data.is_listed !== undefined) updates.is_listed = parsed.data.is_listed;
 
   const { error } = await supabase.from('products').update(updates).eq('id', id).eq('user_id', profileId);
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return NextResponse.json({ error: formatProductDbError(error.message) }, { status: 500 });
 
   const { data: updated } = await supabase.from('products').select('*').eq('id', id).single();
   return NextResponse.json(updated ?? { ok: true });
