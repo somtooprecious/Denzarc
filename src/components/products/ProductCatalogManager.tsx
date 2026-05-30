@@ -284,28 +284,64 @@ export function ProductCatalogManager({
     }
   }
 
+  async function resolveCatalogUrl(): Promise<string | null> {
+    if (shareUrl) return shareUrl;
+    setLoadingShareUrl(true);
+    try {
+      const res = await fetch('/api/catalog/me');
+      const data = await res.json();
+      if (!res.ok || !data.url) {
+        toast.error(data.error ?? 'Could not create catalog link');
+        return null;
+      }
+      setShareUrl(data.url);
+      return data.url as string;
+    } catch {
+      toast.error('Could not create catalog link');
+      return null;
+    } finally {
+      setLoadingShareUrl(false);
+    }
+  }
+
   async function copyCatalogLink() {
-    let url = shareUrl;
-    if (!url) {
-      setLoadingShareUrl(true);
-      try {
-        const res = await fetch('/api/catalog/me');
-        const data = await res.json();
-        if (!res.ok || !data.url) {
-          toast.error(data.error ?? 'Could not create catalog link');
+    const url = await resolveCatalogUrl();
+    if (!url) return;
+    try {
+      await navigator.clipboard.writeText(url);
+      toast.success('Catalog link copied');
+    } catch {
+      toast.error('Could not copy link');
+    }
+  }
+
+  async function shareCatalogLink() {
+    const url = await resolveCatalogUrl();
+    if (!url) return;
+
+    const sharePayload = {
+      title: 'My product catalog — Denzarc',
+      text: 'Browse my available products:',
+      url,
+    };
+
+    try {
+      if (typeof navigator.share === 'function') {
+        if (!navigator.canShare || navigator.canShare(sharePayload)) {
+          await navigator.share(sharePayload);
           return;
         }
-        url = data.url;
-        setShareUrl(url);
-      } catch {
-        toast.error('Could not create catalog link');
-        return;
-      } finally {
-        setLoadingShareUrl(false);
       }
+    } catch (err) {
+      if (err instanceof Error && err.name === 'AbortError') return;
     }
-    await navigator.clipboard.writeText(url);
-    toast.success('Catalog link copied');
+
+    try {
+      await navigator.clipboard.writeText(url);
+      toast.success('Link copied — paste in WhatsApp, email, or messages to share');
+    } catch {
+      toast.error('Sharing is not supported on this device. Use Copy link instead.');
+    }
   }
 
   return (
@@ -316,13 +352,13 @@ export function ProductCatalogManager({
           { label: 'Total products', value: stats.total },
           { label: 'Listed publicly', value: stats.listed },
           { label: 'In stock', value: stats.inStock },
-          { label: 'Public catalog', value: null, action: true },
+          { label: 'Catalog views', value: null, action: 'share' as const },
         ].map((s) =>
-          s.action ? (
+          s.action === 'share' ? (
             <button
               key={s.label}
               type="button"
-              onClick={copyCatalogLink}
+              onClick={shareCatalogLink}
               disabled={loadingShareUrl}
               className="rounded-xl border border-primary-200 dark:border-primary-800 bg-primary-50/50 dark:bg-primary-900/20 p-4 text-left hover:bg-primary-50 dark:hover:bg-primary-900/30 transition disabled:opacity-60"
             >
@@ -330,7 +366,7 @@ export function ProductCatalogManager({
                 {s.label}
               </p>
               <p className="mt-1 text-lg font-bold text-primary-700 dark:text-primary-300">
-                {loadingShareUrl ? 'Loading…' : shareUrl ? 'Copy link →' : 'Get share link →'}
+                {loadingShareUrl ? 'Loading…' : shareUrl ? 'Share link →' : 'Get share link →'}
               </p>
             </button>
           ) : (
@@ -357,15 +393,22 @@ export function ProductCatalogManager({
             <button
               type="button"
               onClick={copyCatalogLink}
-              className="px-4 py-2 text-sm font-medium rounded-lg bg-primary-600 text-white hover:bg-primary-700 transition"
+              className="px-4 py-2 text-sm font-medium rounded-lg border border-primary-600 text-primary-700 dark:text-primary-300 hover:bg-primary-100 dark:hover:bg-primary-900/40 transition"
             >
               Copy link
+            </button>
+            <button
+              type="button"
+              onClick={shareCatalogLink}
+              className="px-4 py-2 text-sm font-medium rounded-lg bg-primary-600 text-white hover:bg-primary-700 transition"
+            >
+              Share
             </button>
             <a
               href={shareUrl}
               target="_blank"
               rel="noreferrer"
-              className="px-4 py-2 text-sm font-medium rounded-lg border border-primary-600 text-primary-700 dark:text-primary-300 hover:bg-primary-100 dark:hover:bg-primary-900/40 transition"
+              className="px-4 py-2 text-sm font-medium rounded-lg border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition"
             >
               Preview
             </a>
