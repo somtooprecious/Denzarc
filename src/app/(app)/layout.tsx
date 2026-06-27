@@ -2,13 +2,19 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { UserButton } from '@clerk/nextjs';
 import { DashboardNav } from '@/components/dashboard/DashboardNav';
+import { getClerkUserId, syncCurrentUserProfile } from '@/lib/auth';
 
-export default function AppLayout({
+export default async function AppLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   const hasClerkPublishableKey = Boolean(process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY);
+
+  const clerkId = await getClerkUserId();
+  if (clerkId) {
+    await syncCurrentUserProfile();
+  }
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-900">

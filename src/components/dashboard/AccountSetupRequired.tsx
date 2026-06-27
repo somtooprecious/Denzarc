@@ -10,8 +10,10 @@ type SetupStatus = {
   ready: boolean;
   clerk: boolean;
   supabase: boolean;
-  webhook: boolean;
-  appUrl: string | null;
+  database: boolean;
+  clerkColumnReady: boolean;
+  missingSupabase: string[];
+  databaseError: string | null;
   hints: string[];
 };
 
@@ -42,7 +44,7 @@ export function AccountSetupRequired() {
         }
         const data = await syncRes.json().catch(() => ({}));
         if (!cancelled && data.error) {
-          toast.error(data.error, { duration: 6000 });
+          toast.error(data.error, { duration: 8000 });
         }
       } catch {
         /* show manual retry */
@@ -79,39 +81,45 @@ export function AccountSetupRequired() {
       </div>
 
       {status && !status.ready && (
-        <div className="mt-4 p-3 rounded-lg bg-amber-100/80 dark:bg-amber-950/40 text-xs text-amber-900 dark:text-amber-100 space-y-1">
-          {!status.supabase && (
+        <div className="mt-4 p-3 rounded-lg bg-amber-100/80 dark:bg-amber-950/40 text-xs text-amber-900 dark:text-amber-100 space-y-2">
+          <p className="font-semibold">What to fix in Vercel → Environment Variables:</p>
+          <p>
+            Use the <strong>Production</strong> environment (denzarc.com does not use Development-only
+            vars).
+          </p>
+          {status.missingSupabase?.length > 0 && (
             <p>
-              <strong>Missing on server:</strong> NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY in
-              Vercel → Settings → Environment Variables.
+              <strong>Missing:</strong> {status.missingSupabase.join(', ')}
             </p>
           )}
           {!status.clerk && (
             <p>
-              <strong>Missing on server:</strong> Clerk keys (NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY,
-              CLERK_SECRET_KEY).
+              <strong>Missing Clerk keys:</strong> NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY, CLERK_SECRET_KEY
             </p>
           )}
+          {status.databaseError && (
+            <p>
+              <strong>Database:</strong> {status.databaseError}
+            </p>
+          )}
+          {status.hints?.slice(0, 3).map((h) => (
+            <p key={h}>{h}</p>
+          ))}
         </div>
       )}
 
       <ol className="mt-6 list-decimal list-inside space-y-2 text-sm text-amber-900 dark:text-amber-100">
         <li>
-          Click <strong>Link my account now</strong> above.
-        </li>
-        <li>
-          If it still fails, run this in <strong>Supabase → SQL Editor</strong> (new query → Run):
-          <code className="block mt-1 text-xs bg-amber-100 dark:bg-amber-950/50 p-2 rounded break-all whitespace-pre-wrap">
-            ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS clerk_user_id TEXT UNIQUE;
-            {'\n'}
-            DO $$ BEGIN IF EXISTS (SELECT 1 FROM information_schema.table_constraints WHERE
-            table_name = &apos;profiles&apos; AND constraint_name = &apos;profiles_id_fkey&apos;) THEN ALTER
-            TABLE public.profiles DROP CONSTRAINT profiles_id_fkey; END IF; END $$;
-            {'\n'}
-            NOTIFY pgrst, &apos;reload schema&apos;;
+          Vercel → Settings → Environment Variables → enable for <strong>Production</strong>:
+          <code className="block mt-1 text-xs bg-amber-100 dark:bg-amber-950/50 p-2 rounded break-all">
+            NEXT_PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, NEXT_PUBLIC_SUPABASE_ANON_KEY,
+            NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY, CLERK_SECRET_KEY, NEXT_PUBLIC_APP_URL=https://denzarc.com
           </code>
         </li>
-        <li>Redeploy on Vercel if you changed environment variables, then refresh this page.</li>
+        <li>
+          Supabase → SQL Editor → run <code className="text-xs">supabase/RUN_CLERK_SETUP.sql</code>
+        </li>
+        <li>Redeploy on Vercel, then click <strong>Link my account now</strong>.</li>
       </ol>
     </div>
   );

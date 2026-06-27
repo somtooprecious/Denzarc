@@ -1,10 +1,12 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
+import {
+  getMissingSupabaseServerVars,
+  getSupabaseServiceRoleKey,
+  getSupabaseUrl,
+} from '@/lib/env';
 
 export function isSupabaseConfigured(): boolean {
-  return Boolean(
-    process.env.NEXT_PUBLIC_SUPABASE_URL?.trim() &&
-      process.env.SUPABASE_SERVICE_ROLE_KEY?.trim()
-  );
+  return getMissingSupabaseServerVars().length === 0;
 }
 
 /**
@@ -12,10 +14,12 @@ export function isSupabaseConfigured(): boolean {
  * Bypasses RLS. Use only in API routes / server code after validating the user via Clerk.
  */
 export function createAdminClient(): SupabaseClient {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const url = getSupabaseUrl();
+  const key = getSupabaseServiceRoleKey();
   if (!url || !key) {
-    throw new Error('Missing SUPABASE_SERVICE_ROLE_KEY or NEXT_PUBLIC_SUPABASE_URL');
+    throw new Error(
+      'Missing Supabase config. Set NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY in Vercel (Production).'
+    );
   }
   return createClient(url, key);
 }

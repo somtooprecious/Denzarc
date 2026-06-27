@@ -15,8 +15,13 @@ export async function GET() {
   if (!profileId) {
     const synced = await syncCurrentUserProfile();
     if ('profileId' in synced) profileId = synced.profileId;
+    else {
+      return NextResponse.json(
+        { error: synced.error, code: synced.code },
+        { status: synced.code === 'UNAUTHORIZED' ? 401 : 503 }
+      );
+    }
   }
-  if (!profileId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
   const supabase = tryCreateAdminClient();
   if (!supabase) {

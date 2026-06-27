@@ -25,6 +25,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
       return;
     }
     try {
+      await fetch('/api/auth/sync-profile', { method: 'POST' });
       const res = await fetch('/api/profile');
       if (res.ok) {
         const data = await res.json();
