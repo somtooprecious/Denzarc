@@ -9,7 +9,13 @@ function firstNonEmpty(...values: (string | undefined)[]): string | undefined {
 }
 
 export function getSupabaseUrl(): string | undefined {
-  return firstNonEmpty(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_URL);
+  const raw = firstNonEmpty(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_URL);
+  if (!raw) return undefined;
+  let url = raw.trim();
+  if (!url.startsWith('http://') && !url.startsWith('https://')) {
+    url = `https://${url}`;
+  }
+  return url.replace(/\/$/, '');
 }
 
 export function getSupabaseAnonKey(): string | undefined {

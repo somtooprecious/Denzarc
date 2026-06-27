@@ -17,18 +17,25 @@ export async function GET() {
   if (supabase) {
     const client = tryCreateAdminClient();
     if (client) {
-      const { error } = await client.from('profiles').select('clerk_user_id').limit(1);
-      if (!error) {
-        database = true;
-        clerkColumnReady = true;
-      } else if (
-        error.message.includes('clerk_user_id') ||
-        (error.message.includes('column') && error.message.includes('does not exist'))
-      ) {
-        database = true;
-        databaseError = 'Run 005_clerk_auth.sql in Supabase (missing clerk_user_id column).';
-      } else {
-        databaseError = error.message;
+      try {
+        const { error } = await client.from('profiles').select('clerk_user_id').limit(1);
+        if (!error) {
+          database = true;
+          clerkColumnReady = true;
+        } else if (
+          error.message.includes('clerk_user_id') ||
+          (error.message.includes('column') && error.message.includes('does not exist'))
+        ) {
+          database = true;
+          databaseError = 'Run RUN_CLERK_SETUP.sql in Supabase (missing clerk_user_id column).';
+        } else {
+          databaseError = error.message;
+        }
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : String(e);
+        databaseError = msg.toLowerCase().includes('fetch failed')
+          ? 'Cannot reach Supabase — check NEXT_PUBLIC_SUPABASE_URL in Vercel Production.'
+          : msg;
       }
     }
   }

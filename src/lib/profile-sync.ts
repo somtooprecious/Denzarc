@@ -37,6 +37,18 @@ export async function upsertProfileForClerkUser(input: {
   email?: string | null;
   fullName?: string | null;
 }): Promise<ProfileSyncResult> {
+  try {
+    return await upsertProfileForClerkUserInner(input);
+  } catch (err) {
+    return networkErrorResult(err);
+  }
+}
+
+async function upsertProfileForClerkUserInner(input: {
+  clerkUserId: string;
+  email?: string | null;
+  fullName?: string | null;
+}): Promise<ProfileSyncResult> {
   const supabase = tryCreateAdminClient();
   if (!supabase) {
     return {
@@ -165,6 +177,19 @@ function migrationRequiredResult(): ProfileSyncResult {
     ok: false,
     code: 'MIGRATION_REQUIRED',
     message:
-      'Database needs Clerk setup. In Supabase SQL Editor run supabase/migrations/005_clerk_auth.sql, then click Link my account again.',
+      'Run supabase/RUN_CLERK_SETUP.sql in Supabase SQL Editor, then click Link my account again.',
   };
+}
+
+function networkErrorResult(err: unknown): ProfileSyncResult {
+  const msg = err instanceof Error ? err.message : String(err);
+  if (msg.toLowerCase().includes('fetch failed')) {
+    return {
+      ok: false,
+      code: 'DB_ERROR',
+      message:
+        'Cannot reach Supabase. In Vercel → Production env vars, set NEXT_PUBLIC_SUPABASE_URL (https://your-id.supabase.co) and SUPABASE_SERVICE_ROLE_KEY, redeploy, and ensure your Supabase project is not paused.',
+    };
+  }
+  return { ok: false, code: 'DB_ERROR', message: msg };
 }
