@@ -14,7 +14,8 @@ export function ProfileSyncRetry() {
       const res = await fetch('/api/auth/sync-profile', { method: 'POST' });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        toast.error(data.error ?? 'Could not link your account. Check server setup.');
+        const msg = data.error ?? 'Could not link your account.';
+        toast.error(msg, { duration: 8000 });
         return;
       }
       toast.success('Account linked. Loading dashboard…');

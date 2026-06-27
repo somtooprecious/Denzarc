@@ -74,6 +74,47 @@ export async function upsertProfileForClerkUser(input: {
     return { ok: true, profileId: existing.id };
   }
 
+  // Link existing profile by email (e.g. account created before Clerk migration)
+  if (email.includes('@') && !email.endsWith('@users.denzarc.local')) {
+    const { data: byEmail, error: emailFindError } = await supabase
+      .from('profiles')
+      .select('id, clerk_user_id')
+      .ilike('email', email)
+      .maybeSingle();
+
+    if (emailFindError && isMigrationError(emailFindError.message, emailFindError.code)) {
+      return migrationRequiredResult();
+    }
+
+    if (byEmail?.id) {
+      if (byEmail.clerk_user_id && byEmail.clerk_user_id !== input.clerkUserId) {
+        return {
+          ok: false,
+          code: 'DB_ERROR',
+          message: 'This email is linked to another sign-in account. Contact support.',
+        };
+      }
+
+      const { error: linkError } = await supabase
+        .from('profiles')
+        .update({
+          clerk_user_id: input.clerkUserId,
+          email,
+          full_name: fullName,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', byEmail.id);
+
+      if (linkError) {
+        if (isMigrationError(linkError.message, linkError.code)) return migrationRequiredResult();
+        if (isForeignKeyError(linkError.message)) return migrationRequiredResult();
+        return { ok: false, code: 'DB_ERROR', message: linkError.message };
+      }
+
+      return { ok: true, profileId: byEmail.id };
+    }
+  }
+
   const { data: inserted, error: insertError } = await supabase
     .from('profiles')
     .insert({
@@ -88,6 +129,9 @@ export async function upsertProfileForClerkUser(input: {
 
   if (insertError) {
     if (isMigrationError(insertError.message, insertError.code)) {
+      return migrationRequiredResult();
+    }
+    if (isForeignKeyError(insertError.message)) {
       return migrationRequiredResult();
     }
     // Race: webhook + page load both inserted
@@ -107,8 +151,13 @@ function isMigrationError(message: string, code?: string): boolean {
   return (
     code === '42703' ||
     message.includes('clerk_user_id') ||
-    message.includes('column') && message.includes('does not exist')
+    (message.includes('column') && message.includes('does not exist'))
   );
+}
+
+function isForeignKeyError(message: string): boolean {
+  const lower = message.toLowerCase();
+  return lower.includes('foreign key') || lower.includes('profiles_id_fkey');
 }
 
 function migrationRequiredResult(): ProfileSyncResult {
@@ -116,6 +165,6 @@ function migrationRequiredResult(): ProfileSyncResult {
     ok: false,
     code: 'MIGRATION_REQUIRED',
     message:
-      'Database is missing clerk_user_id on profiles. Run supabase/migrations/005_clerk_auth.sql in Supabase SQL Editor.',
+      'Database needs Clerk setup. In Supabase SQL Editor run supabase/migrations/005_clerk_auth.sql, then click Link my account again.',
   };
 }
