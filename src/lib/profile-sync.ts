@@ -71,6 +71,9 @@ async function upsertProfileForClerkUserInner(input: {
     if (isMigrationError(findError.message, findError.code)) {
       return migrationRequiredResult();
     }
+    if (isUnreachableSupabaseError(findError.message)) {
+      return unreachableSupabaseResult();
+    }
     return { ok: false, code: 'DB_ERROR', message: findError.message };
   }
 
@@ -120,6 +123,7 @@ async function upsertProfileForClerkUserInner(input: {
       if (linkError) {
         if (isMigrationError(linkError.message, linkError.code)) return migrationRequiredResult();
         if (isForeignKeyError(linkError.message)) return migrationRequiredResult();
+        if (isUnreachableSupabaseError(linkError.message)) return unreachableSupabaseResult();
         return { ok: false, code: 'DB_ERROR', message: linkError.message };
       }
 
@@ -145,6 +149,9 @@ async function upsertProfileForClerkUserInner(input: {
     }
     if (isForeignKeyError(insertError.message)) {
       return migrationRequiredResult();
+    }
+    if (isUnreachableSupabaseError(insertError.message)) {
+      return unreachableSupabaseResult();
     }
     // Race: webhook + page load both inserted
     const { data: again } = await supabase
@@ -181,15 +188,35 @@ function migrationRequiredResult(): ProfileSyncResult {
   };
 }
 
+export function isUnreachableSupabaseError(message: string): boolean {
+  const lower = message.toLowerCase();
+  return (
+    lower.includes('fetch failed') ||
+    lower.includes('enotfound') ||
+    lower.includes('getaddrinfo') ||
+    lower.includes('network') ||
+    lower.includes('econnrefused') ||
+    lower.includes('etimedout') ||
+    lower.includes('certificate')
+  );
+}
+
+export function unreachableSupabaseMessage(): string {
+  return (
+    'Cannot reach your Supabase database. NEXT_PUBLIC_SUPABASE_URL is set but the host does not respond ' +
+    '(wrong URL, deleted project, or paused project). Open Supabase → Project Settings → API, copy the Project URL, ' +
+    'update it in Vercel Production env vars with a matching SUPABASE_SERVICE_ROLE_KEY, restore/unpause the project if needed, then redeploy.'
+  );
+}
+
+function unreachableSupabaseResult(): ProfileSyncResult {
+  return { ok: false, code: 'DB_ERROR', message: unreachableSupabaseMessage() };
+}
+
 function networkErrorResult(err: unknown): ProfileSyncResult {
   const msg = err instanceof Error ? err.message : String(err);
-  if (msg.toLowerCase().includes('fetch failed')) {
-    return {
-      ok: false,
-      code: 'DB_ERROR',
-      message:
-        'Cannot reach Supabase. In Vercel → Production env vars, set NEXT_PUBLIC_SUPABASE_URL (https://your-id.supabase.co) and SUPABASE_SERVICE_ROLE_KEY, redeploy, and ensure your Supabase project is not paused.',
-    };
+  if (isUnreachableSupabaseError(msg)) {
+    return unreachableSupabaseResult();
   }
   return { ok: false, code: 'DB_ERROR', message: msg };
 }

@@ -29,13 +29,22 @@ export async function getSupabaseProfileId(): Promise<string | null> {
     return null;
   }
 
-  const { data: existing } = await supabase
-    .from('profiles')
-    .select('id')
-    .eq('clerk_user_id', clerkId)
-    .maybeSingle();
+  try {
+    const { data: existing, error: findError } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('clerk_user_id', clerkId)
+      .maybeSingle();
 
-  if (existing?.id) return existing.id;
+    if (findError) {
+      console.error('[auth] Profile lookup failed:', findError.message);
+      // Fall through to upsert path which maps network errors clearly
+    } else if (existing?.id) {
+      return existing.id;
+    }
+  } catch (err) {
+    console.error('[auth] Profile lookup threw:', err);
+  }
 
   const user = await currentUser();
   const email =

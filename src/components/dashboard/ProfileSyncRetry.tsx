@@ -14,8 +14,12 @@ export function ProfileSyncRetry() {
       const res = await fetch('/api/auth/sync-profile', { method: 'POST' });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        const msg = data.error ?? 'Could not link your account.';
-        toast.error(msg, { duration: 8000 });
+        const raw = data.error ?? 'Could not link your account.';
+        const msg =
+          typeof raw === 'string' && /fetch failed|enotfound|getaddrinfo/i.test(raw)
+            ? 'Cannot reach Supabase. Fix NEXT_PUBLIC_SUPABASE_URL in Vercel Production (project may be paused or deleted), redeploy, then try again.'
+            : raw;
+        toast.error(msg, { duration: 10000 });
         return;
       }
       toast.success('Account linked. Loading dashboard…');

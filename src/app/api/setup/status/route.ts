@@ -1,6 +1,10 @@
 import { NextResponse } from 'next/server';
-import { isClerkConfigured, getMissingSupabaseServerVars } from '@/lib/env';
+import { isClerkConfigured, getMissingSupabaseServerVars, getSupabaseUrl } from '@/lib/env';
 import { tryCreateAdminClient } from '@/lib/supabase/admin';
+import {
+  isUnreachableSupabaseError,
+  unreachableSupabaseMessage,
+} from '@/lib/profile-sync';
 
 /** Check deployment config (no secrets exposed). */
 export async function GET() {
@@ -9,10 +13,19 @@ export async function GET() {
   const supabase = missingSupabase.length === 0;
   const webhook = Boolean(process.env.CLERK_WEBHOOK_SECRET?.trim());
   const appUrl = process.env.NEXT_PUBLIC_APP_URL?.trim() || null;
+  const supabaseHost = (() => {
+    try {
+      const u = getSupabaseUrl();
+      return u ? new URL(u).host : null;
+    } catch {
+      return null;
+    }
+  })();
 
   let database = false;
   let databaseError: string | null = null;
   let clerkColumnReady = false;
+  let unreachable = false;
 
   if (supabase) {
     const client = tryCreateAdminClient();
@@ -28,14 +41,20 @@ export async function GET() {
         ) {
           database = true;
           databaseError = 'Run RUN_CLERK_SETUP.sql in Supabase (missing clerk_user_id column).';
+        } else if (isUnreachableSupabaseError(error.message)) {
+          unreachable = true;
+          databaseError = unreachableSupabaseMessage();
         } else {
           databaseError = error.message;
         }
       } catch (e) {
         const msg = e instanceof Error ? e.message : String(e);
-        databaseError = msg.toLowerCase().includes('fetch failed')
-          ? 'Cannot reach Supabase — check NEXT_PUBLIC_SUPABASE_URL in Vercel Production.'
-          : msg;
+        if (isUnreachableSupabaseError(msg)) {
+          unreachable = true;
+          databaseError = unreachableSupabaseMessage();
+        } else {
+          databaseError = msg;
+        }
       }
     }
   }
@@ -48,6 +67,8 @@ export async function GET() {
     supabase,
     database,
     clerkColumnReady,
+    unreachable,
+    supabaseHost,
     webhook,
     appUrl,
     missingSupabase,
@@ -58,7 +79,10 @@ export async function GET() {
         'Add NEXT_PUBLIC_SUPABASE_URL (Supabase project URL).',
       missingSupabase.includes('SUPABASE_SERVICE_ROLE_KEY') &&
         'Add SUPABASE_SERVICE_ROLE_KEY (not anon key). Name must be exact, or use SERVICE_ROLE_KEY.',
+      unreachable &&
+        `Supabase host ${supabaseHost ?? '(unknown)'} is unreachable — project may be paused, deleted, or the URL in Vercel is wrong.`,
       supabase &&
+        !unreachable &&
         !clerkColumnReady &&
         'Supabase: run supabase/RUN_CLERK_SETUP.sql in SQL Editor.',
       clerk &&
